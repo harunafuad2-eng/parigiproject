@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebutuhan Koperasi - Gerbang Pangan</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="logogpid.png" type="image/png">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 flex items-center sticky top-0 z-10">
+        <a href="apk_dashboard_petani.html" class="p-2 rounded-full hover:bg-gray-100">
+            <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+        </a>
+        <h1 class="text-lg font-bold text-gray-800 mx-auto">Kebutuhan Stok Koperasi</h1>
+        <div class="w-10"></div> <!-- Spacer -->
+    </header>
+
+    <main class="p-4">
+        <div id="stock-needs-container" class="space-y-4"></div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const DB_STOCK_NEEDS_KEY = 'gerbangPanganStockNeeds';
+            const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+
+            if (!loggedInUserEmail) {
+                window.location.replace('apk_login.html');
+                return;
+            }
+
+            const container = document.getElementById('stock-needs-container');
+
+            const renderStockNeeds = () => {
+                const allNeeds = JSON.parse(localStorage.getItem(DB_STOCK_NEEDS_KEY)) || [];
+                const activeNeeds = allNeeds.filter(need => need.status === 'Aktif').sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+
+                container.innerHTML = '';
+                if (activeNeeds.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center p-10 bg-white rounded-lg shadow">
+                            <i data-lucide="info" class="w-12 h-12 mx-auto text-gray-400"></i>
+                            <h3 class="mt-4 text-lg font-medium text-gray-800">Belum Ada Kebutuhan</h3>
+                            <p class="mt-1 text-sm text-gray-500">Saat ini koperasi belum mem-posting kebutuhan stok baru.</p>
+                        </div>`;
+                    lucide.createIcons();
+                    return;
+                }
+
+                activeNeeds.forEach(need => {
+                    const card = `
+                        <div class="bg-white p-5 rounded-lg shadow border-l-4 border-blue-500">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-lg font-bold text-gray-800">${need.productName}</h3>
+                                <span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Dibutuhkan</span>
+                            </div>
+                            <div class="mt-3 space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i data-lucide="package" class="w-4 h-4 mr-2 text-gray-500"></i>
+                                    <span>Jumlah: <span class="font-medium">${need.quantity} ${need.unit}</span></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="tag" class="w-4 h-4 mr-2 text-gray-500"></i>
+                                    <span>Rentang Harga: <span class="font-medium">${need.priceRange}</span></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="calendar" class="w-4 h-4 mr-2 text-gray-500"></i>
+                                    <span>Diposting: ${new Date(need.postDate).toLocaleDateString('id-ID', { day:'numeric', month:'long' })}</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <a href="#" class="text-sm font-semibold text-blue-600 hover:underline">Hubungi Koperasi untuk Info Lanjut</a>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+                lucide.createIcons();
+            };
+
+            // Initial render
+            renderStockNeeds();
+        });
+    </script>
+
+</body>
+</html>

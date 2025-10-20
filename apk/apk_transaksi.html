@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Pesanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="assets/logogpid.png" type="image/png">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-green': '#10B981',
+                        'custom-green-dark': '#047857',
+                        'custom-red': '#EF4444',
+                        'custom-yellow': '#FBBF24',
+                        'custom-blue-light': '#EFF6FF',
+                        'custom-purple-light': '#F5F3FF',
+                        'custom-purple': '#6D28D9',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #ffffff;
+            overflow-x: hidden;
+        }
+        .main-content-wrapper {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff; 
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal { transition: opacity 0.3s ease-in-out; }
+        .modal-content { transition: transform 0.3s ease-out, opacity 0.3s ease-out; }
+        .modal.visible { opacity: 1; pointer-events: auto; }
+        
+        #payment-modal .modal-content { transform: translateY(100%); }
+        #payment-modal.visible .modal-content { transform: translateY(0); }
+
+        #success-modal .modal-content { transform: scale(0.95); opacity: 0; }
+        #success-modal.visible .modal-content { transform: scale(1); opacity: 1; }
+
+
+        .packing-box-animation {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw-box 2s ease-in-out forwards;
+        }
+        @keyframes draw-box { to { stroke-dashoffset: 0; } }
+        .checkmark-animation {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: draw-checkmark 0.5s 2s ease-in-out forwards;
+        }
+        @keyframes draw-checkmark { to { stroke-dashoffset: 0; } }
+    </style>
+</head>
+<body class="bg-white min-h-screen pb-10">
+
+    <div id="main-content" class="max-w-xl mx-auto pt-8 main-content-wrapper">
+
+        <header class="flex justify-between items-center mb-6">
+            <button onclick="history.back()" class="text-custom-green hover:text-custom-green-dark transition text-3xl font-bold p-1">&larr;</button>
+            <div id="page-title" class="text-2xl font-normal text-gray-800">Konfirmasi Pesanan</div>
+            <div class="w-8"></div>
+        </header>
+        
+        <p id="page-description" class="text-gray-600 mb-6">Lengkapi detail dan pilih metode pembayaran untuk melanjutkan.</p>
+
+        <div id="confirmation-form" class="p-6 border border-gray-100 rounded-xl bg-gray-50 shadow-md">
+            
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Detail Pesanan</h3>
+            <div id="product-list" class="space-y-3 mb-4"></div>
+            
+            <div id="voucher-section" class="mb-4">
+                <label for="voucher-code" class="block text-sm font-medium text-gray-700 mb-1">Punya Kode Voucher?</label>
+                <div class="flex space-x-2">
+                    <input type="text" id="voucher-code" placeholder="Masukkan kode di sini" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg focus:ring-custom-green focus:border-custom-green transition">
+                    <button onclick="applyVoucher()" class="px-4 py-2 bg-gray-800 text-white text-sm font-semibold rounded-lg hover:bg-gray-900 transition">Gunakan</button>
+                </div>
+                 <p id="voucher-status" class="text-xs mt-1 h-4"></p>
+            </div>
+            
+            <div class="bg-white p-4 border-2 border-custom-green rounded-lg">
+                <div id="discount-display" class="hidden flex justify-between items-center text-sm mb-2 text-red-600">
+                    <span>Diskon</span>
+                    <span id="discount-amount">- Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-base text-gray-800 font-extrabold">Total Harga:</span>
+                    <span class="text-xl font-extrabold text-custom-green" id="total-price-text">Rp 0</span>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-4 border-b pb-2">Metode & Alamat</h3>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Pembayaran</label>
+                <button id="payment-method-button" onclick="openPaymentModal()" class="w-full flex justify-between items-center text-left px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-custom-green focus:border-custom-green transition">
+                    <span id="payment-method-display" class="font-semibold text-gray-800">Bayar di Kantor Koperasi</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500"></i>
+                </button>
+            </div>
+
+            <div id="qris-info" class="p-4 bg-custom-purple-light border border-custom-purple rounded-lg mb-4 hidden"></div>
+            <div id="cash-info" class="p-4 bg-custom-blue-light border border-blue-200 text-blue-800 rounded-lg mb-4"></div>
+            <div id="transfer-info" class="p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg mb-4 hidden"></div>
+
+            <div class="mb-6">
+                <label for="delivery-address" class="block text-sm font-medium text-gray-700 mb-2">Alamat Pengiriman</label>
+                <textarea id="delivery-address" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-custom-green focus:border-custom-green transition resize-none" required>Jl. Merdeka No. 10, Jakarta Pusat, DKI Jakarta</textarea>
+                <button id="maps-button" onclick="openMapsSelector()" class="mt-2 text-xs text-custom-green hover:text-custom-green-dark font-medium underline">
+                    📍 Pilih Lokasi di Peta
+                </button>
+            </div>
+            
+            <button id="process-button" onclick="processTransaction()" class="w-full py-3 bg-custom-green text-white font-bold rounded-xl hover:bg-custom-green-dark transition focus:outline-none focus:ring-4 focus:ring-custom-green focus:ring-opacity-50">
+                Proses Pesanan
+            </button>
+        </div>
+        
+        <div id="empty-state" class="hidden text-center p-8 mt-10">
+            <i data-lucide="shopping-cart" class="w-16 h-16 mx-auto text-gray-300"></i>
+            <h2 class="mt-4 text-xl font-bold text-gray-800">Tidak Ada Item</h2>
+            <p class="mt-2 text-gray-500">Tidak ada item untuk diproses. Silakan kembali ke market untuk berbelanja.</p>
+            <button onclick="window.location.href = 'apk_market.html'" class="mt-6 bg-custom-green text-white font-bold py-2 px-6 rounded-lg hover:bg-custom-green-dark transition">
+                Kembali ke Market
+            </button>
+        </div>
+
+    </div>
+
+    <div id="success-modal" class="modal fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content relative z-10 bg-white rounded-2xl w-full max-w-xs text-center p-8">
+            <div class="w-24 h-24 mx-auto mb-5">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path class="packing-box-animation" d="M20 40 L20 80 L80 80 L80 40 L50 20 L20 40 Z M20 40 L50 60 L80 40" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path class="packing-box-animation" d="M50 20 L50 60" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path class="checkmark-animation" d="M35 55 L45 65 L65 45" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2 id="success-title" class="text-2xl font-bold text-gray-900 mb-2">Pesanan Diterima!</h2>
+            <p class="text-gray-600">Pesanan Anda <span id="success-order-id" class="font-bold font-mono">#00000</span> sedang kami proses.</p>
+        </div>
+    </div>
+    
+    <div id="payment-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-[60] opacity-0 pointer-events-none flex items-end" onclick="closePaymentModal()">
+        <div class="modal-content bg-white w-full rounded-t-2xl shadow-2xl p-6" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Pilih Metode Pembayaran</h3>
+            <div class="space-y-3">
+                <button onclick="selectPaymentMethod('Bayar di Kantor Koperasi')" class="w-full flex items-center text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                    <i data-lucide="store" class="w-6 h-6 text-custom-green mr-4"></i>
+                    <span class="font-semibold">Bayar di Kantor Koperasi</span>
+                </button>
+                <button onclick="selectPaymentMethod('Transfer Bank')" class="w-full flex items-center text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                    <i data-lucide="landmark" class="w-6 h-6 text-custom-green mr-4"></i>
+                    <span class="font-semibold">Transfer Bank</span>
+                </button>
+                <button onclick="selectPaymentMethod('QRIS')" class="w-full flex items-center text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                    <i data-lucide="qr-code" class="w-6 h-6 text-custom-green mr-4"></i>
+                    <span class="font-semibold">QRIS</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    const HISTORY_KEY = 'transactionHistory';
+    const PENDING_KEY = 'pendingTransaction';
+    const CART_KEY = 'cartItems';
+    
+    let IS_EDITING_MODE = false;
+    let EDITING_TRANSACTION_ID = null;
+    let CURRENT_TRANSACTION_ITEMS = [];
+    let TOTAL_PRICE = 0;
+    let VOUCHER_APPLIED = false;
+    let SELECTED_PAYMENT_METHOD = 'Bayar di Kantor Koperasi';
+
+    const formatRupiahVisual = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+
+    function loadTransactionData() {
+        let itemsToProcess = [];
+        const pendingData = JSON.parse(localStorage.getItem(PENDING_KEY));
+
+        if (pendingData && typeof pendingData === 'object' && !Array.isArray(pendingData) && pendingData.id) {
+            // Ini adalah mode "Ganti Metode Pembayaran"
+            IS_EDITING_MODE = true;
+            EDITING_TRANSACTION_ID = pendingData.id;
+            
+            const addressTextarea = document.getElementById('delivery-address');
+            addressTextarea.disabled = true;
+            addressTextarea.classList.add('bg-gray-100', 'cursor-not-allowed');
+            document.getElementById('maps-button').classList.add('hidden');
+            document.getElementById('voucher-section').classList.add('hidden');
+
+            document.getElementById('page-title').textContent = "Ganti Metode Pembayaran";
+            document.getElementById('page-description').textContent = `Perbarui metode pembayaran untuk pesanan #${EDITING_TRANSACTION_ID}.`;
+            document.getElementById('process-button').textContent = "Perbarui Pesanan";
+            
+            // Pastikan CURRENT_TRANSACTION_ITEMS diisi dengan benar dari pendingData
+            CURRENT_TRANSACTION_ITEMS = pendingData.items || [];
+
+        } else if (pendingData && Array.isArray(pendingData) && pendingData.length > 0) {
+            // --- PERBAIKAN FINAL: Ini adalah alur normal dari troli atau "Beli Sekarang" ---
+            // Gunakan data dari pendingTransaction yang sudah benar formatnya (array).
+            itemsToProcess = pendingData;
+            CURRENT_TRANSACTION_ITEMS = itemsToProcess;
+
+        } else {
+            // Fallback: Jika tidak ada pendingData, coba baca dari troli (seharusnya tidak terjadi di alur normal)
+            const cartData = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+            itemsToProcess = cartData;
+            CURRENT_TRANSACTION_ITEMS = itemsToProcess;
+        }
+
+        const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+        const allCustomers = JSON.parse(localStorage.getItem('gerbangPanganCustomers')) || [];
+        const currentUser = allCustomers.find(c => c.email === loggedInUserEmail);
+        if (!currentUser) {
+            alert("Sesi Anda tidak valid. Silakan login kembali.");
+            window.location.replace('apk_login.html');
+        }
+
+        if (CURRENT_TRANSACTION_ITEMS.length === 0) {
+            document.getElementById('confirmation-form').classList.add('hidden');
+            document.getElementById('page-description').classList.add('hidden');
+            document.getElementById('empty-state').classList.remove('hidden');
+            lucide.createIcons();
+            return;
+        }
+
+        renderProductListAndPrice(CURRENT_TRANSACTION_ITEMS);
+    }
+    
+    function renderProductListAndPrice(items) {
+        const container = document.getElementById('product-list');
+        container.innerHTML = '';
+        let totalPriceCalculated = 0;
+        items.forEach(item => {
+            if (!item || typeof item.price !== 'number' || typeof item.quantity !== 'number') return;
+            const subtotal = item.price * item.quantity;
+            totalPriceCalculated += subtotal;
+            container.innerHTML += `<div class="bg-white p-3 border border-gray-200 rounded-lg"><p class="font-bold text-gray-800">${item.name}</p><div class="flex justify-between items-center text-sm text-gray-600 mt-1"><span>${formatRupiahVisual(item.price)} x ${item.quantity} ${item.unit||''}</span><span class="font-semibold text-gray-800">${formatRupiahVisual(subtotal)}</span></div></div>`;
+        });
+        TOTAL_PRICE = totalPriceCalculated;
+        updateTotalPriceDisplay();
+    }
+
+    function updateTotalPriceDisplay() {
+        let finalPrice = TOTAL_PRICE;
+        const discountDisplay = document.getElementById('discount-display');
+        if (VOUCHER_APPLIED) {
+            const discountAmount = TOTAL_PRICE * 0.10;
+            finalPrice -= discountAmount;
+            document.getElementById('discount-amount').textContent = `- ${formatRupiahVisual(discountAmount)}`;
+            discountDisplay.classList.remove('hidden');
+        } else {
+            discountDisplay.classList.add('hidden');
+        }
+        document.getElementById('total-price-text').textContent = formatRupiahVisual(finalPrice);
+        updatePaymentInfo();
+    }
+    
+    function applyVoucher() {
+        const voucherInput = document.getElementById('voucher-code');
+        const voucherStatus = document.getElementById('voucher-status');
+        if (VOUCHER_APPLIED) {
+            voucherStatus.textContent = 'Voucher sudah digunakan.';
+            voucherStatus.className = 'text-xs mt-1 h-4 text-yellow-600';
+            return;
+        }
+        if (voucherInput.value.toUpperCase() === 'SIMDES10') {
+            VOUCHER_APPLIED = true;
+            voucherStatus.textContent = 'Voucher SIMDES10 berhasil diterapkan!';
+            voucherStatus.className = 'text-xs mt-1 h-4 text-green-600 font-semibold';
+            voucherInput.disabled = true;
+            updateTotalPriceDisplay();
+        } else {
+            voucherStatus.textContent = 'Kode voucher tidak valid.';
+            voucherStatus.className = 'text-xs mt-1 h-4 text-red-600';
+        }
+    }
+
+    function updatePaymentInfo() {
+        const finalPrice = VOUCHER_APPLIED ? TOTAL_PRICE * 0.90 : TOTAL_PRICE;
+        const formattedNominal = formatRupiahVisual(finalPrice);
+        
+        document.getElementById('qris-info').innerHTML = `<p class="font-bold text-sm mb-3">Instruksi QRIS</p><div class="text-center"><p class="text-xs">Total Pembayaran:</p><p class="text-2xl font-extrabold text-custom-red mb-3">${formattedNominal}</p><img src="https://via.placeholder.com/200x200?text=QRIS+SIMULASI" class="mx-auto w-40 h-40"><p class="text-xs mt-2">Pindai kode untuk membayar.</p></div>`;
+        document.getElementById('cash-info').innerHTML = `<p class="font-bold text-sm mb-2">Instruksi Tunai</p><p class="text-xs">Total Pembayaran:</p><p class="text-xl font-extrabold text-custom-red mb-3">${formattedNominal}</p><div class="border-t pt-2"><p class="text-xs font-semibold">Lokasi: Kantor Koperasi</p></div>`;
+        document.getElementById('transfer-info').innerHTML = `<p class="font-bold text-sm mb-2">Instruksi Transfer</p><p class="text-xs">Total Pembayaran:</p><p class="text-xl font-extrabold text-custom-red mb-3">${formattedNominal}</p><div class="border-t pt-2"><p class="text-xs font-semibold">Bank Mandiri: <span class="font-mono">123-456-7890</span></p></div>`;
+
+        ['qris-info', 'cash-info', 'transfer-info'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        if (SELECTED_PAYMENT_METHOD === 'Transfer Bank') document.getElementById('transfer-info').classList.remove('hidden');
+        else if (SELECTED_PAYMENT_METHOD === 'Bayar di Kantor Koperasi') document.getElementById('cash-info').classList.remove('hidden');
+        else if (SELECTED_PAYMENT_METHOD === 'QRIS') document.getElementById('qris-info').classList.remove('hidden');
+    }
+
+    const paymentModal = document.getElementById('payment-modal');
+    function openPaymentModal() {
+        paymentModal.classList.add('visible');
+        paymentModal.querySelector('.modal-content').classList.remove('translate-y-full');
+        lucide.createIcons();
+    }
+    function closePaymentModal() {
+        paymentModal.querySelector('.modal-content').classList.add('translate-y-full');
+        setTimeout(() => {
+            paymentModal.classList.remove('visible');
+        }, 300);
+    }
+    function selectPaymentMethod(method) {
+        SELECTED_PAYMENT_METHOD = method;
+        document.getElementById('payment-method-display').textContent = method;
+        updatePaymentInfo();
+        closePaymentModal();
+    }
+    
+    function processTransaction() {
+        const button = document.getElementById('process-button');
+        button.disabled = true;
+        button.innerHTML = '<div class="flex items-center justify-center space-x-2"><div class="spinner"></div><span>Memproses...</span></div>';
+        
+        setTimeout(() => {
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            const paymentMethod = SELECTED_PAYMENT_METHOD;
+            let status = 'Pesanan Dibuat';
+            if (paymentMethod === 'Transfer Bank' || paymentMethod === 'QRIS') { status = 'Menunggu Pembayaran'; } 
+            else if (paymentMethod === 'Bayar di Kantor Koperasi') { status = 'Menunggu Pembayaran Tunai'; }
+
+            let orderId;
+            let successTitle;
+
+            if (IS_EDITING_MODE) {
+                const index = history.findIndex(t => t.id === EDITING_TRANSACTION_ID);
+                if (index !== -1) {
+                    history[index].paymentMethod = paymentMethod;
+                    history[index].status = status;
+                    orderId = EDITING_TRANSACTION_ID;
+                    successTitle = "Pesanan Diperbarui!";
+                }
+            } else {
+                const finalPrice = VOUCHER_APPLIED ? TOTAL_PRICE * 0.90 : TOTAL_PRICE;
+                orderId = Date.now().toString().substring(5);
+                successTitle = "Pesanan Diterima!";
+
+                // --- PERBAIKAN FINAL (v2) ---
+                // Ambil database produk lengkap untuk memperkaya data item
+                const allProducts = JSON.parse(localStorage.getItem('gerbangPanganProducts')) || [];
+                const enrichedItems = CURRENT_TRANSACTION_ITEMS.map(item => {
+                    const productInfo = allProducts.find(p => p.id === item.id);
+                    // Pastikan productInfo ada sebelum menambahkan koperasiAsal
+                    if (productInfo) {
+                        return { ...item, koperasiAsal: productInfo.koperasiAsal };
+                    }
+                    return item; // Kembalikan item asli jika produk tidak ditemukan
+                });
+
+                // Langsung gunakan `enrichedItems` saat membuat objek transaksi baru
+                const newTransaction = { id: orderId, items: enrichedItems, totalPrice: finalPrice, status: status, paymentMethod: paymentMethod, deliveryAddress: document.getElementById('delivery-address').value, date: new Date().toISOString(), rating: 0, comment: "" };
+                
+                // --- PERBAIKAN KRUSIAL: Tambahkan customerId dan customerName ---
+                const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+                const allCustomers = JSON.parse(localStorage.getItem('gerbangPanganCustomers')) || [];
+                const currentUser = allCustomers.find(c => c.email === loggedInUserEmail);
+                if (currentUser) { newTransaction.customerId = currentUser.id; newTransaction.customerName = currentUser.name; }
+                history.push(newTransaction);
+                // --- AKHIR PERBAIKAN KRUSIAL ---
+            }
+
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            localStorage.removeItem(PENDING_KEY);
+            localStorage.removeItem(CART_KEY);
+            
+            const successModal = document.getElementById('success-modal');
+            document.getElementById('success-order-id').textContent = `#${orderId}`;
+            document.getElementById('success-title').textContent = successTitle;
+            
+            successModal.classList.add('visible');
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                window.location.href = 'apk_progres.html';
+            }, 4000);
+
+        }, 2000); 
+    }
+    
+    function openMapsSelector(){ alert('Simulasi: Buka peta untuk memilih alamat.'); }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        loadTransactionData();
+    });
+</script>
+
+</body>
+</html>

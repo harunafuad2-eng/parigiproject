@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progres & Riwayat Pesanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="assets/logogpid.png" type="image/png">
+    <script>
+        // --- PROTEKSI HALAMAN (SESSION CHECK) ---
+        const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+        if (loggedInUserEmail) {
+            const customers = JSON.parse(localStorage.getItem('gerbangPanganCustomers')) || [];
+            const currentUser = customers.find(c => c.email === loggedInUserEmail);
+            if (!currentUser) {
+                window.location.replace('apk_login.html'); // Data pengguna tidak ditemukan, redirect
+            }
+        } else {
+            window.location.replace('apk_login.html'); // Tidak ada sesi login, redirect
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-green': '#10B981', 
+                        'custom-green-dark': '#047857',
+                        'custom-gray-light': '#F3F4F6',
+                        'status-in-progress': '#3B82F6', 
+                        'status-completed': '#10B981', 
+                        'custom-red': '#EF4444',
+                        'custom-blue-light': '#EFF6FF', 
+                        'custom-yellow': '#FBBF24',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #ffffff; 
+        }
+        .main-content-wrapper {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .star {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star.filled { color: #FBBF24; }
+        .star.empty { color: #D1D5DB; }
+
+        #toast-notification {
+            opacity: 0;
+            transform: translateX(calc(100% + 1.25rem));
+            pointer-events: none;
+            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+        }
+        #toast-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal.visible .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen pb-20">
+
+    <div id="toast-notification" class="fixed top-5 right-5 bg-custom-green-dark text-white py-2 px-4 rounded-lg shadow-lg z-[100]">
+        <p id="toast-message"></p>
+    </div>
+
+    <div class="max-w-xl mx-auto pt-8 main-content-wrapper">
+        
+        <header class="flex justify-between items-center mb-4"> 
+            <button onclick="window.location.href='apk_market.html'" class="text-custom-green hover:text-custom-green-dark transition text-3xl font-bold p-1">&larr;</button>
+            <div class="text-2xl font-normal text-gray-800">Pesanan</div> 
+            <div class="w-8"></div> 
+        </header>
+        
+        <p class="text-gray-600 mb-6">Lacak pesanan terbaru Anda dan tinjau riwayat transaksi.</p>
+
+        <div id="active-order-section" class="mb-8 p-4 border border-gray-100 rounded-xl bg-gray-50 shadow-sm"> 
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Status Pesanan Aktif</h2>
+        </div>
+
+        <div id="history-order-section" class="space-y-4 p-4 border border-gray-100 rounded-xl bg-gray-50 shadow-sm"> 
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Riwayat Transaksi Selesai</h2>
+        </div>
+        
+        <div id="no-history-placeholder" class="hidden p-10 bg-white border border-gray-200 rounded-xl text-center text-gray-500 shadow-md">
+            <p class="mb-2 text-lg font-medium">👋 Belum ada transaksi.</p>
+            <p class="text-sm">Anda bisa kembali ke market untuk mulai berbelanja.</p>
+        </div>
+
+    </div>
+    
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
+        <p class="text-center text-sm text-gray-500">Total Riwayat: <span id="total-orders">0</span> Transaksi</p>
+    </div>
+
+    <!-- Modals -->
+    <div id="progress-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none" onclick="closeProgressModal()">
+        <div class="modal-content bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl" onclick="event.stopPropagation()">
+            <!-- Konten diisi oleh JS -->
+        </div>
+    </div>
+    <div id="rating-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none" onclick="closeRatingModal()">
+        <div class="modal-content bg-white rounded-xl w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()">
+            <!-- Konten diisi oleh JS -->
+        </div>
+    </div>
+    <div id="cancel-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none" onclick="closeCancelModal()">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-sm p-6" onclick="event.stopPropagation()">
+            <h4 class="font-bold text-lg text-gray-800 text-center">Batalkan Pesanan</h4>
+            <p class="text-sm text-gray-600 my-4 text-center">Apakah Anda yakin ingin membatalkan pesanan ini?</p>
+            <div class="flex justify-center space-x-4">
+                <button onclick="closeCancelModal()" class="flex-1 py-2 px-4 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition">Tidak</button>
+                <button id="confirm-cancel-button" onclick="cancelOrder()" class="flex-1 py-2 px-4 bg-custom-red text-white font-semibold rounded-lg hover:bg-red-700 transition">Ya, Batalkan</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let currentRating = 0;
+        let orderToCancelId = null;
+        const HISTORY_KEY = 'transactionHistory'; 
+        const CUSTOMERS_KEY = 'gerbangPanganCustomers';
+        const PENDING_KEY = 'pendingTransaction';
+        
+        const PROGRESS_STEPS = [
+            // Diperbarui untuk menyertakan warna dan info lebih detail
+            { name: 'Pesanan Dibuat', key: 'Dibuat', order: 1, icon: '📋', color: 'text-custom-red', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
+            { name: 'Diproses', key: 'Diproses', order: 2, icon: '📦', color: 'text-status-in-progress', bgColor: 'bg-custom-blue-light', borderColor: 'border-blue-200' },
+            { name: 'Dikirim', key: 'Dikirim', order: 3, icon: '🚚', color: 'text-status-in-progress', bgColor: 'bg-custom-blue-light', borderColor: 'border-blue-200' },
+            { name: 'Selesai', key: 'Selesai', order: 4, icon: '✅', color: 'text-status-completed', bgColor: 'bg-white', borderColor: 'border-gray-200' },
+        ];
+
+        const STATUS_MAP = {
+            'Menunggu Pembayaran': 'Dibuat', 'Menunggu Pembayaran Tunai': 'Dibuat', 
+            'Pesanan Dibuat': 'Dibuat', 'Menunggu Verifikasi': 'Dibuat',
+            'Diproses': 'Diproses', 'Dikemas': 'Diproses', 'Dalam Pengiriman': 'Dikirim', 'Selesai': 'Selesai'
+        };
+        const formatRupiahVisual = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        const getTransactionById = (id) => (JSON.parse(localStorage.getItem(HISTORY_KEY)) || []).find(t => t.id === id);
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        function createTransactionCard(transaction) {
+            const statusKey = STATUS_MAP[transaction.status] || 'Dibuat';
+            const stepInfo = PROGRESS_STEPS.find(s => s.key === statusKey) || PROGRESS_STEPS[0];
+            const { color: statusColor, bgColor, borderColor } = stepInfo;
+            const currentStepOrder = stepInfo.order;
+
+            const getProgressBar = () => {
+                if (statusKey === 'Selesai') return '';
+                const progressPercent = currentStepOrder > 1 ? ((currentStepOrder - 1) / (PROGRESS_STEPS.length - 1)) * 100 : 0;
+                const stepsHtml = PROGRESS_STEPS.map(step => {
+                    const isCompleted = step.order <= currentStepOrder;
+                    return `
+                        <div class="flex flex-col items-center w-1/4">
+                            <div class="w-8 h-8 rounded-full ${isCompleted ? 'bg-custom-green' : 'bg-gray-200'} flex items-center justify-center text-white text-lg transition-colors duration-500 shadow">${step.icon}</div>
+                            <p class="text-[10px] text-center mt-1 ${isCompleted ? 'text-custom-green font-semibold' : 'text-gray-500'}">${step.key}</p>
+                        </div>`;
+                }).join('');
+                return `<div class="mt-4 pt-2"><div class="relative"><div class="absolute top-4 left-0 w-full h-1 bg-gray-200 rounded-full"><div class="absolute top-0 left-0 h-1 bg-custom-green rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div></div><div class="relative flex justify-between">${stepsHtml}</div></div></div>`;
+            };
+
+            const getActionButtons = () => {
+                const date = new Date(transaction.date);
+                const formattedDate = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                switch (transaction.status) {
+                    case 'Menunggu Pembayaran':
+                    case 'Menunggu Pembayaran Tunai':
+                        const mainAction = (transaction.paymentMethod === 'Transfer Bank' || transaction.paymentMethod === 'QRIS')
+                            ? `<button id="confirm-payment-${transaction.id}" onclick="event.stopPropagation(); confirmPayment('${transaction.id}', this)" class="text-xs text-white bg-custom-green hover:bg-custom-green-dark font-medium py-1.5 px-3 rounded-full transition">Saya Sudah Bayar</button>`
+                            : `<span class="text-xs text-gray-500">Bayar di kantor</span>`;
+                        return `<div class="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center">
+                                    <div class="flex items-center space-x-3">
+                                        <button onclick="event.stopPropagation(); changePaymentMethod('${transaction.id}')" class="text-xs text-gray-600 hover:underline">Ganti Metode</button>
+                                        <button onclick="event.stopPropagation(); showCancelModal('${transaction.id}')" class="text-xs text-custom-red hover:underline">Batalkan</button>
+                                    </div>
+                                    ${mainAction}
+                                </div>`;
+                    case 'Menunggu Verifikasi':
+                        return `<div class="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center"><p class="text-xs text-gray-500">${formattedDate}</p><p class="text-xs text-orange-600 font-semibold text-right">Menunggu konfirmasi admin...</p></div>`;
+                    case 'Diproses':
+                        return `<div class="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center"><p class="text-xs text-gray-500">${formattedDate}</p><p class="text-xs text-gray-500 text-right">Untuk pembatalan, <a href="tel:08123456789" class="underline font-medium">hubungi admin</a>.</p></div>`;
+                    case 'Dikirim': // Status baru untuk pengiriman
+                        return `<div class="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center"><p class="text-xs text-gray-500">${formattedDate}</p><button onclick="event.stopPropagation(); showRatingModal('${transaction.id}')" class="text-xs text-white bg-custom-green hover:bg-custom-green-dark font-medium py-1.5 px-3 rounded-full transition">Barang Diterima</button></div>`;
+                    case 'Selesai':
+                        if (transaction.rating > 0) {
+                            const stars = '★'.repeat(transaction.rating) + '☆'.repeat(5 - transaction.rating);
+                            let ratingHtml = `<div class="mt-2 font-semibold text-sm">Rating Anda: <span class="text-custom-yellow">${stars}</span></div>`;
+                            if (transaction.comment) {
+                                ratingHtml += `<p class="text-xs text-gray-600 italic mt-1 truncate">"${transaction.comment}"</p>`;
+                            }
+                            return ratingHtml;
+                        } else {
+                            return `<div class="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center"><p class="text-xs text-gray-500">${formattedDate}</p><button onclick="event.stopPropagation(); showRatingModal('${transaction.id}')" class="text-xs text-custom-red hover:underline font-medium">Beri Rating</button></div>`;
+                        }
+                    default:
+                        return `<div class="border-t border-gray-200 pt-3 mt-3"><p class="text-xs text-gray-500">${formattedDate}</p></div>`;
+                }
+            }
+
+            const itemNames = transaction.items ? transaction.items.map(i => i.name).join(', ') : (transaction.name || 'Produk tidak valid');
+            
+            return `
+                <div onclick="showProgressModal('${transaction.id}')" class="p-5 border-2 rounded-xl shadow-md ${bgColor} ${borderColor} transition duration-300 hover:shadow-lg cursor-pointer">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs font-semibold text-gray-800">TRX ID: #${transaction.id}</p>
+                        <span class="status-badge ${statusColor}" style="background-color: ${bgColor}; border: 1px solid ${borderColor};">${transaction.status}</span>
+                    </div>
+                    <p class="font-bold text-lg text-gray-800 truncate">${itemNames}</p>
+                    <p class="text-sm text-gray-600">Total: <span class="font-extrabold text-custom-green">${formatRupiahVisual(transaction.totalPrice)}</span></p>
+                    ${getProgressBar()}
+                    ${getActionButtons()}
+                </div>`;
+        }
+        
+        function confirmPayment(id, buttonElement) {
+            const DB_PRODUCTS_KEY = 'gerbangPanganProducts';
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Memverifikasi...</span>`;
+            setTimeout(() => {
+                const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+                const index = history.findIndex(t => t.id === id); // Cari pesanan
+                if (index !== -1) {
+                    // --- PERBAIKAN KRUSIAL (v2) ---
+                    // Ambil database produk untuk mencocokkan koperasi asal
+                    const allProducts = JSON.parse(localStorage.getItem(DB_PRODUCTS_KEY)) || [];
+                    const orderToUpdate = history[index];
+
+                    // Iterasi setiap item dalam pesanan dan PASTIKAN 'koperasiAsal' ada.
+                    // Ini penting jika data lama belum memiliki properti ini.
+                    orderToUpdate.items.forEach(item => {
+                        if (!item.koperasiAsal) { // Hanya tambahkan jika belum ada
+                            const productInfo = allProducts.find(p => p.id === item.id);
+                            if (productInfo) {
+                                item.koperasiAsal = productInfo.koperasiAsal;
+                            }
+                        }
+                    });
+
+                    history[index].status = 'Menunggu Verifikasi'; // Ubah status menjadi 'Menunggu Verifikasi'
+                    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                    loadOrderHistory();
+                    showToast(`Konfirmasi pembayaran #${id} terkirim.`);
+                }
+            }, 5000);
+        }
+
+        function loadOrderHistory() {
+            const activeContainer = document.getElementById('active-order-section');
+            const historyContainer = document.getElementById('history-order-section');
+            const placeholder = document.getElementById('no-history-placeholder');
+
+            // Reset containers
+            activeContainer.innerHTML = activeContainer.querySelector('h2').outerHTML;
+            historyContainer.innerHTML = historyContainer.querySelector('h2').outerHTML;
+
+            // --- PERBAIKAN LOGIKA: Filter pesanan berdasarkan pengguna yang login ---
+            const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+            const allCustomers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY)) || [];
+            const currentUser = allCustomers.find(c => c.email === loggedInUserEmail);
+
+            if (!currentUser) { // Jika data pengguna tidak ditemukan
+                placeholder.classList.remove('hidden');
+                activeContainer.classList.add('hidden');
+                historyContainer.classList.add('hidden');
+                return;
+            }
+
+            const allOrders = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            const userOrders = allOrders.filter(order => order.customerId === currentUser.id);
+            // --- AKHIR PERBAIKAN ---
+
+            if (userOrders.length === 0) {
+                placeholder.classList.remove('hidden');
+                activeContainer.classList.add('hidden');
+                historyContainer.classList.add('hidden');
+            } else {
+                placeholder.classList.add('hidden');
+                activeContainer.classList.remove('hidden');
+                historyContainer.classList.remove('hidden');
+
+                const activeStatuses = ['Menunggu Pembayaran', 'Menunggu Pembayaran Tunai', 'Menunggu Verifikasi', 'Diproses', 'Dikirim'];
+                const activeOrders = userOrders.filter(t => activeStatuses.includes(t.status)).sort((a, b) => new Date(b.date) - new Date(a.date));
+                const completedOrders = userOrders.filter(t => t.status === 'Selesai' || t.status === 'Dibatalkan').sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                activeContainer.innerHTML += (activeOrders.length > 0) ? `<div class="space-y-4 pt-2">${activeOrders.map(createTransactionCard).join('')}</div>` : '<p class="text-gray-500 text-sm p-4 bg-white rounded-lg border">Tidak ada pesanan yang sedang diproses.</p>';
+                historyContainer.innerHTML += (completedOrders.length > 0) ? `<div class="space-y-4 pt-2">${completedOrders.map(createTransactionCard).join('')}</div>` : '<p class="text-gray-500 text-sm p-4 bg-white rounded-lg border">Belum ada riwayat pesanan.</p>';
+            }
+            document.getElementById('total-orders').textContent = userOrders.length;
+            lucide.createIcons();
+        }
+        
+        function showModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('visible');
+        }
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('visible');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function showProgressModal(id){const transaction=getTransactionById(id);if(!transaction)return;const modal=document.getElementById('progress-modal');const modalContent=modal.querySelector('.modal-content');const currentStatusKey=STATUS_MAP[transaction.status]||'Dibuat';const currentStep=PROGRESS_STEPS.find(step=>step.key===currentStatusKey);const currentStepOrder=currentStep?currentStep.order:1;let stepsHtml='';PROGRESS_STEPS.forEach(step=>{const isActive=step.order<=currentStepOrder;const isCurrent=step.key===currentStatusKey;let colorClass='text-gray-500';let bgColor='bg-gray-300';let statusDetail='Menunggu';let iconDisplay=step.icon;if(isActive){colorClass='text-custom-green-dark';bgColor='bg-custom-green-dark';statusDetail='Telah mencapai tahap ini'}if(isCurrent&&currentStatusKey==='Dibuat'){colorClass='text-custom-red';bgColor='bg-custom-red';statusDetail='Saat ini menunggu pembayaran Anda'}
+        stepsHtml+=`<div class="flex items-start space-x-3"><div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full ${bgColor} flex items-center justify-center text-white text-lg shadow">${iconDisplay}</div>${step.order<PROGRESS_STEPS.length?`<div class="w-0.5 h-8 ${bgColor}"></div>`:''}</div><div><p class="${colorClass} ${isCurrent?'font-bold':'font-semibold'}">${step.name}</p><p class="text-xs text-gray-500">${statusDetail}</p></div></div>`});modalContent.innerHTML=`<div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-gray-900">Progres Pesanan <span class="text-sm font-normal text-gray-500">(#${id})</span></h3><button onclick="closeProgressModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-light">&times;</button></div><div class="space-y-4">${stepsHtml}</div><button onclick="closeProgressModal()" class="mt-8 w-full py-3 bg-custom-green text-white font-bold rounded-xl hover:bg-custom-green-dark transition">Tutup</button>`;lucide.createIcons();showModal('progress-modal');}
+        function closeProgressModal(){closeModal('progress-modal')}
+        
+        function renderStars(ratingValue){const container=document.getElementById('rating-modal').querySelector('#star-rating-container');container.innerHTML='';for(let i=1;i<=5;i++){const star=document.createElement('span');star.className='star text-custom-yellow text-4xl';star.innerHTML='★';star.dataset.value=i;if(i<=ratingValue){star.classList.add('filled')}else{star.classList.add('empty')}
+        star.onclick=()=>{currentRating=i;document.getElementById('rating-modal').querySelector('#selected-rating').value=i;renderStars(i)};container.appendChild(star)}}
+        
+        function showRatingModal(id){const modal=document.getElementById('rating-modal');modal.querySelector('.modal-content').innerHTML=`<div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-gray-900">Nilai Pesanan Anda</h3><button onclick="closeRatingModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-light">&times;</button></div><p class="text-sm text-gray-600 mb-4">Terima kasih telah berbelanja! Berikan penilaian untuk pesanan <span class="font-semibold">#${id}</span></p><form onsubmit="event.preventDefault(); submitRating()"><input type="hidden" id="rating-transaction-id" value="${id}"><input type="hidden" id="selected-rating" value="0" required><div class="flex justify-center space-x-2 mb-6 text-4xl" id="star-rating-container"></div><div class="mb-6"><label for="rating-comment" class="block text-sm font-medium text-gray-700 mb-2">Komentar Anda (Opsional)</label><textarea id="rating-comment" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-custom-green focus:border-custom-green transition resize-none" placeholder="Tuliskan ulasan Anda..."></textarea></div><button type="submit" class="w-full py-3 bg-custom-green text-white font-bold rounded-xl hover:bg-custom-green-dark transition">Kirim Penilaian & Selesaikan</button></form>`;currentRating=5;modal.querySelector('#selected-rating').value=5;renderStars(currentRating);showModal('rating-modal')}
+        function closeRatingModal(){closeModal('rating-modal')}
+        function submitRating(){const modal=document.getElementById('rating-modal');const id=modal.querySelector('#rating-transaction-id').value;const rating=parseInt(modal.querySelector('#selected-rating').value);const comment=modal.querySelector('#rating-comment').value;if(rating===0){alert("Mohon berikan rating bintang!");return}
+        submitUserReview(id, rating, comment);closeRatingModal();}
+        
+        function showCancelModal(id) { orderToCancelId = id; showModal('cancel-modal'); }
+        function closeCancelModal() { closeModal('cancel-modal'); orderToCancelId = null; }
+        function cancelOrder() {
+            if (!orderToCancelId) return;
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            const index = history.findIndex(t => t.id === orderToCancelId);
+            if (index > -1) history[index].status = 'Dibatalkan'; // Ubah status menjadi Dibatalkan
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); // Simpan kembali
+            loadOrderHistory();
+            showToast(`Pesanan #${orderToCancelId} berhasil dibatalkan.`);
+            closeCancelModal();
+        }
+
+        function changePaymentMethod(id) {
+            const transaction = getTransactionById(id);
+            if (!transaction) return;
+            // PERBAIKAN: Kirim seluruh objek transaksi untuk masuk ke mode edit di halaman selanjutnya.
+            // Halaman transaksi akan mendeteksi adanya 'id' dan 'totalPrice' untuk mengaktifkan mode edit.
+            localStorage.setItem(PENDING_KEY, JSON.stringify(transaction));
+            window.location.href = 'apk_transaksi.html';
+        }
+
+        function submitUserReview(id, rating, comment) {
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            const index = history.findIndex(t => t.id === id);
+            if (index === -1) return;
+
+            // Ubah status menjadi "Selesai" dan simpan rating/komentar
+            history[index].status = 'Selesai';
+            history[index].rating = rating;
+            history[index].comment = comment;
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            loadOrderHistory();
+            showToast(`Terima kasih atas penilaian Anda untuk pesanan #${id}!`);
+        }
+
+        window.onload=()=>{loadOrderHistory();lucide.createIcons()}
+    </script>
+</body>
+</html>

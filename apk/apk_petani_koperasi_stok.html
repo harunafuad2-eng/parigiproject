@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Stok - KOP SIMDES</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-green': '#10B981',
+                        'custom-green-dark': '#047857',
+                        'custom-red': '#EF4444',
+                        'custom-yellow': '#FBBF24',
+                        'custom-orange': '#F97316',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f7f9fb;
+        }
+        /* Style untuk status stok */
+        .status-aman { background-color: #D1FAE5; color: #065F46; }
+        .status-menipis { background-color: #FEF3C7; color: #92400E; }
+        .status-habis { background-color: #FEE2E2; color: #991B1B; }
+        
+        /* Gaya untuk Modal */
+        .keterangan-stok { /* Menggunakan nama kelas baru */
+            transition: opacity 0.3s ease-in-out;
+        }
+        #modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        .keterangan-stok.visible #modal-content { /* Menggunakan nama kelas baru */
+            transform: scale(1);
+            opacity: 1;
+        }
+        .category-filter-btn.active {
+            background-color: #10B981; /* custom-green */
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header (Telah Diperbarui agar Sama dengan Market.html) -->
+        <header class="sticky top-0 bg-white shadow-sm z-10">
+            <div class="flex justify-between items-center p-4">
+                <button onclick="window.location.href = 'apk_dashboard_petani.html';" class="text-custom-green text-3xl font-bold rounded-full p-1 hover:bg-gray-100 transition active:scale-95">&larr;</button>
+                <h1 class="text-2xl font-normal text-gray-800">Laporan Stok Koperasi</h1>
+                <div class="w-8"></div> <!-- Spacer untuk alignment -->
+            </div>
+        </header>
+
+        <main class="p-4 md:p-6">
+            <!-- Ringkasan Stok (Diperbarui) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4">
+                    <div class="p-3 bg-blue-100 rounded-full"><i data-lucide="package" class="w-6 h-6 text-blue-600"></i></div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Produk</p>
+                        <p id="total-produk" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4">
+                    <div class="p-3 bg-yellow-100 rounded-full"><i data-lucide="trending-down" class="w-6 h-6 text-yellow-600"></i></div>
+                    <div>
+                        <p class="text-sm text-gray-500">Stok Menipis</p>
+                        <p id="stok-menipis" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4">
+                    <div class="p-3 bg-red-100 rounded-full"><i data-lucide="package-x" class="w-6 h-6 text-red-600"></i></div>
+                    <div>
+                        <p class="text-sm text-gray-500">Stok Habis</p>
+                        <p id="stok-habis" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 sm:col-span-3">
+                    <div class="p-3 bg-green-100 rounded-full"><i data-lucide="bar-chart-2" class="w-6 h-6 text-green-600"></i></div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Nilai Stok</p>
+                        <p id="total-nilai-stok" class="text-2xl font-bold text-gray-800">Rp 0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pencarian -->
+            <div class="mb-6">
+                <div class="relative">
+                    <input id="search-input" type="text" placeholder="Cari nama produk..." class="w-full py-3 pl-10 pr-4 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-green">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- Filter Kategori (Baru) -->
+            <div class="mb-6">
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">Filter Kategori</h3>
+                <div id="category-filter-container" class="flex space-x-2 overflow-x-auto pb-2"></div>
+            </div>
+
+            <!-- Daftar Produk -->
+            <div id="product-list" class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-4 border-b hidden sm:grid grid-cols-12 gap-4 font-semibold text-sm text-gray-600">
+                    <div class="col-span-6">Nama Produk</div>
+                    <div class="col-span-3 text-center">Stok Saat Ini</div>
+                    <div class="col-span-3 text-center">Status</div>
+                </div>
+                <div id="product-list-body">
+                    <!-- Data produk akan diisi oleh JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Detail Produk -->
+    <div id="product-detail-modal" class="keterangan-stok fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden" onclick="closeProductModal()">
+        <div id="modal-content" class="bg-white rounded-xl w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 id="modal-product-name" class="text-xl font-bold text-gray-900">Detail Produk</h3>
+                <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-700 text-2xl font-light">&times;</button>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <div class="flex justify-between">
+                    <span class="font-medium text-gray-500">Nama Koperasi:</span>
+                    <span id="modal-koperasi-name" class="font-semibold text-right"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium text-gray-500">Asal Stok:</span>
+                    <span id="modal-origin" class="font-semibold text-right"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium text-gray-500">Ketersediaan Stok:</span>
+                    <span id="modal-stock" class="font-semibold"></span>
+                </div>
+                 <div class="flex justify-between">
+                    <span class="font-medium text-gray-500">Harga Terbaru:</span>
+                    <span id="modal-price" class="font-semibold text-custom-green"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium text-gray-500">Tanggal Masuk:</span>
+                    <span id="modal-date" class="font-semibold"></span>
+                </div>
+            </div>
+            <button onclick="closeProductModal()" class="mt-6 w-full py-2 bg-custom-green text-white font-bold rounded-lg hover:bg-custom-green-dark transition">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const DB_PRODUCTS_KEY = 'gerbangPanganProducts';
+            const DB_EXTERNAL_USERS_KEY = 'pemdaExternalUsers'; // Kunci baru untuk data user eksternal
+            const DB_CATEGORIES_KEY = 'gerbangPanganCategories'; // Mengambil dari admin dashboard
+            const allProducts = JSON.parse(localStorage.getItem(DB_PRODUCTS_KEY)) || [];
+            const allExternalUsers = JSON.parse(localStorage.getItem(DB_EXTERNAL_USERS_KEY)) || [];
+            // Mengambil kategori statis dari admin dashboard
+            const allCategories = JSON.parse(localStorage.getItem(DB_CATEGORIES_KEY)) || ['Pertanian', 'Perkebunan', 'Perikanan', 'Peternakan'];
+
+            const productListBody = document.getElementById('product-list-body');
+            const searchInput = document.getElementById('search-input');
+            const modal = document.getElementById('product-detail-modal');
+            const categoryFilterContainer = document.getElementById('category-filter-container');
+
+            const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+
+            // --- FUNGSI FILTER ---
+            let activeCategory = 'semua';
+            
+            // --- FUNGSI MODAL ---
+            window.openProductModal = (productId) => {
+                const product = allProducts.find(p => p.id === productId);
+                if (!product) return;
+
+                // --- LOGIKA BARU UNTUK MENCARI ALAMAT ---
+                const originalSupplierName = product.koperasiAsal || '';
+                const supplierData = allExternalUsers.find(user => user.entity === originalSupplierName);
+                let supplierAddress = 'Alamat tidak diketahui';
+                if (supplierData) {
+                    // Menggunakan data dari user untuk membuat alamat lengkap
+                    supplierAddress = `Kec. ${supplierData.kecamatan}, Desa ${supplierData.desa}, ${supplierData.kabupaten}, ${supplierData.provinsi}`;
+                }
+                const displaySupplierName = originalSupplierName ? `KDMP ${originalSupplierName}` : 'Tidak Diketahui';
+
+                const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+
+                document.getElementById('modal-product-name').textContent = product.name;
+                document.getElementById('modal-koperasi-name').textContent = displaySupplierName; // Menampilkan nama koperasi dengan prefiks
+                document.getElementById('modal-origin').textContent = supplierAddress; // Menampilkan alamat lengkap
+                document.getElementById('modal-stock').textContent = `${product.stock} ${product.unit}`;
+                document.getElementById('modal-price').textContent = product.price ? `${formatRupiah(product.price)} / ${product.unit}` : 'Harga tidak tersedia';
+                document.getElementById('modal-date').textContent = new Date(product.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); // Menggunakan data dari admin
+                
+                modal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    modal.classList.add('visible');
+                });
+            };
+
+            window.closeProductModal = () => {
+                modal.classList.remove('visible');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            };
+
+            function getStatus(stock, threshold) {
+                if (stock === 0) return { text: 'Habis', class: 'status-habis' };
+                if (stock < threshold) return { text: 'Menipis', class: 'status-menipis' };
+                return { text: 'Aman', class: 'status-aman' };
+            }
+
+            function filterAndRender() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filteredProducts = allProducts.filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(searchTerm);
+                    const matchesCategory = activeCategory === 'semua' || p.category === activeCategory;
+                    return matchesSearch && matchesCategory;
+                });
+                renderProducts(filteredProducts);
+            }
+
+            function renderProducts(productsToRender) {
+                productListBody.innerHTML = '';
+                if (productsToRender.length === 0) {
+                    productListBody.innerHTML = `<div class="p-4 text-center text-gray-500">Produk tidak ditemukan.</div>`;
+                    return;
+                }
+                
+                productsToRender.forEach(product => {
+                    const status = getStatus(product.stock, product.threshold);
+                    const card = `
+                        <div onclick="openProductModal(${product.id})" class="product-item grid grid-cols-12 gap-4 items-center p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
+                            <div class="col-span-12 sm:col-span-6 flex items-center space-x-3">
+                                <img src="${product.image}" alt="${product.name}" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <p class="font-semibold text-gray-800">${product.name}</p>
+                                    <p class="text-sm text-gray-500 sm:hidden">${product.stock} ${product.unit} - <span class="font-medium ${status.class.split(' ')[1]}">${status.text}</span></p>
+                                </div>
+                            </div>
+                            <div class="hidden sm:block col-span-3 text-center font-medium text-gray-700">${product.stock} ${product.unit}</div>
+                            <div class="hidden sm:block col-span-3 text-center">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full ${status.class}">${status.text}</span>
+                            </div>
+                        </div>`;
+                    productListBody.innerHTML += card;
+                });
+                lucide.createIcons();
+            }
+
+            function updateSummary(products) {
+                document.getElementById('total-produk').textContent = products.length;
+                document.getElementById('stok-menipis').textContent = products.filter(p => p.stock > 0 && p.stock < p.threshold).length;
+                document.getElementById('stok-habis').textContent = products.filter(p => p.stock === 0).length;
+                const totalValue = products.reduce((sum, p) => sum + (p.stock * p.price), 0);
+                document.getElementById('total-nilai-stok').textContent = formatRupiah(totalValue);
+            }
+
+            function renderCategoryFilters() {
+                categoryFilterContainer.innerHTML = '';
+                const categories = ['semua', ...allCategories];
+                categories.forEach(cat => {
+                    const btn = document.createElement('button');
+                    btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+                    btn.dataset.category = cat;
+                    btn.className = 'category-filter-btn flex-shrink-0 py-2 px-4 bg-gray-200 text-gray-700 rounded-full text-sm transition';
+                    if (cat === 'semua') {
+                        btn.classList.add('active');
+                    }
+                    btn.addEventListener('click', () => {
+                        document.querySelector('.category-filter-btn.active').classList.remove('active');
+                        btn.classList.add('active');
+                        activeCategory = cat;
+                        filterAndRender();
+                    });
+                    categoryFilterContainer.appendChild(btn);
+                });
+            }
+            
+            searchInput.addEventListener('input', filterAndRender);
+
+            // --- Initial Render ---
+            renderCategoryFilters();
+            const sortedProducts = allProducts.sort((a, b) => new Date(b.lastUpdate) - new Date(a.lastUpdate));
+            filterAndRender();
+            updateSummary(allProducts);
+        });
+    </script>
+</body>
+</html>

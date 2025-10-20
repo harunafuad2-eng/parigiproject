@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Proteksi Halaman: Periksa token sesi sebelum memuat sisa halaman
+        // Ganti 'perumda_token' dengan nama token yang sesuai untuk login Perumda
+        const perumdaToken = sessionStorage.getItem('perumda_token'); 
+        if (!perumdaToken) {
+            // Jika tidak ada token, alihkan ke halaman login yang sesuai
+            window.location.replace('perumda_login.html'); // Mengarahkan ke halaman login Perumda
+        }
+    </script>
+    <title>Dashboard - Perumda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-blue': '#0A74DA',
+                        'brand-dark': '#053B6C',
+                        'light-bg': '#F0F4F8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        #toast-notification {
+            transform: translateX(120%);
+            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        .modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal.visible .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-light-bg font-sans">
+    
+    <div id="toast-notification" class="fixed top-5 right-5 bg-brand-dark text-white py-2 px-4 rounded-lg shadow-lg z-50">
+        <p id="toast-message"></p>
+    </div>
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg flex flex-col">
+            <div class="p-6 flex items-center space-x-3 border-b">
+                <img src="assets/logogpid.png" alt="Logo Gerbang Pangan" class="w-12 h-12 object-contain">
+                <div>
+                    <h2 class="text-lg font-bold text-brand-dark">PERUMDA</h2>
+                    <p class="text-xs text-gray-500">Panel Admin</p>
+                </div>
+            </div>
+            <nav id="sidebar-nav" class="flex-grow p-4">
+                <a href="#" onclick="showView('dashboard')" data-view="dashboard" class="nav-link flex items-center px-4 py-3 text-white bg-brand-blue rounded-lg font-semibold">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" onclick="showView('stok')" data-view="stok" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-light-bg rounded-lg mt-2 font-semibold">
+                    <i data-lucide="archive" class="w-5 h-5 mr-3"></i>
+                    Koperasi Stok
+                </a>
+                <a href="#" onclick="showView('market')" data-view="market" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-light-bg rounded-lg mt-2 font-semibold">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 mr-3"></i>
+                    Market
+                </a>
+                <a href="#" onclick="showView('perusahaan')" data-view="perusahaan" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-light-bg rounded-lg mt-2 font-semibold">
+                    <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i>
+                    Data Perusahaan
+                </a>
+                <a href="#" onclick="showView('laporan')" data-view="laporan" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-light-bg rounded-lg mt-2 font-semibold">
+                    <i data-lucide="file-text" class="w-5 h-5 mr-3"></i>
+                    Laporan
+                </a>
+            </nav>
+            <div class="p-4 border-t">
+                 <!-- DIUBAH: Menggunakan onclick untuk memanggil fungsi logout -->
+                 <a href="#" onclick="logout()" class="flex items-center px-4 py-3 text-gray-600 hover:bg-light-bg rounded-lg font-semibold">
+                    <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
+                    Keluar
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <div id="dashboard-view" class="view-container flex-1 flex flex-col overflow-hidden">
+                <header class="bg-white border-b p-4 flex justify-between items-center"><h1 class="text-2xl font-bold text-brand-dark">Dashboard</h1><div class="font-semibold text-gray-600">Admin Perumda</div></header>
+                <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+                    <!-- Summary Cards -->
+                    <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white p-5 rounded-lg shadow flex items-center space-x-4">
+                            <div class="p-3 bg-blue-100 rounded-full"><i data-lucide="wallet" class="w-6 h-6 text-brand-blue"></i></div>
+                            <div><p class="text-sm text-gray-500">Total Penjualan</p><p id="summary-total-sales" class="text-2xl font-bold text-gray-800">Rp 0</p></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow flex items-center space-x-4">
+                            <div class="p-3 bg-green-100 rounded-full"><i data-lucide="shopping-cart" class="w-6 h-6 text-green-600"></i></div>
+                            <div><p class="text-sm text-gray-500">Transaksi Selesai</p><p id="summary-completed-trx" class="text-2xl font-bold text-gray-800">0</p></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow flex items-center space-x-4">
+                            <div class="p-3 bg-yellow-100 rounded-full"><i data-lucide="loader" class="w-6 h-6 text-yellow-600"></i></div>
+                            <div><p class="text-sm text-gray-500">Transaksi Pending</p><p id="summary-pending-trx" class="text-2xl font-bold text-gray-800">0</p></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow flex items-center space-x-4">
+                            <div class="p-3 bg-purple-100 rounded-full"><i data-lucide="briefcase" class="w-6 h-6 text-purple-600"></i></div>
+                            <div><p class="text-sm text-gray-500">Total Rekanan</p><p id="summary-total-partners" class="text-2xl font-bold text-gray-800">0</p></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold text-brand-dark mb-4">Grafik Penjualan Mingguan</h3><canvas id="salesChart"></canvas></div>
+                </main>
+            </div>
+            <div id="stok-view" class="view-container flex-1 flex-col overflow-hidden hidden">
+                <header class="bg-white border-b p-4"><h1 class="text-2xl font-bold text-brand-dark">Manajemen Stok Koperasi</h1></header>
+                 <main class="flex-1 overflow-x-hidden overflow-y-auto p-6"><div class="bg-blue-50 border-l-4 border-brand-blue text-brand-dark p-4 rounded-r-lg mb-6"><p class="font-semibold">Informasi Integrasi</p><p class="text-sm">Data stok di halaman ini terintegrasi langsung dengan data dari **Aplikasi Koperasi**.</p></div><div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold text-brand-dark mb-4">Daftar Stok Produk</h3><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="bg-gray-50 border-b"><th class="p-4 font-semibold">Nama Produk</th><th class="p-4 font-semibold">Stok Tersedia</th><th class="p-4 font-semibold">Satuan</th><th class="p-4 font-semibold">Status</th></tr></thead><tbody id="stock-table-body"></tbody></table></div></div></main>
+            </div>
+            <div id="market-view" class="view-container flex-1 flex flex-col overflow-hidden hidden">
+                <header class="bg-white border-b p-4 flex justify-between items-center"><h1 class="text-2xl font-bold text-brand-dark">Marketplace Perumda</h1><div class="flex items-center space-x-4"><a href="#" onclick="showView('troli')" class="relative text-gray-600 hover:text-brand-blue"><i data-lucide="shopping-cart" class="w-6 h-6"></i><span id="market-cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span></a><a href="#" onclick="showView('laporan')" class="text-gray-600 hover:text-brand-blue"><i data-lucide="history" class="w-6 h-6"></i></a></div></header>
+                 <main class="flex-1 overflow-x-hidden overflow-y-auto p-6"><div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold text-brand-dark mb-4">Produk Tersedia untuk Order</h3><div id="market-product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div></div></main>
+            </div>
+            <div id="troli-view" class="view-container flex-1 flex-col overflow-hidden hidden">
+                <header class="bg-white border-b p-4 flex justify-between items-center"><h1 class="text-2xl font-bold text-brand-dark">Troli Belanja</h1><button onclick="showView('market')" class="text-sm font-semibold text-brand-blue hover:underline">Lanjutkan Belanja</button></header>
+                 <main class="flex-1 overflow-x-hidden overflow-y-auto p-6"><div id="cart-items-container" class="bg-white p-6 rounded-lg shadow"></div></main>
+            </div>
+            <div id="perusahaan-view" class="view-container flex-1 flex-col overflow-hidden hidden">
+                <header class="bg-white border-b p-4 flex justify-between items-center"><h1 class="text-2xl font-bold text-brand-dark">Data Perusahaan Rekanan</h1><button onclick="openCompanyModal()" class="flex items-center bg-brand-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-brand-dark transition"><i data-lucide="plus" class="w-5 h-5 mr-2"></i>Tambah Perusahaan</button></header>
+                 <main class="flex-1 overflow-x-hidden overflow-y-auto p-6"><div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold text-brand-dark mb-4">Daftar Perusahaan</h3><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="bg-gray-50 border-b"><th class="p-4 font-semibold">Nama Perusahaan</th><th class="p-4 font-semibold">Sektor</th><th class="p-4 font-semibold">Status</th><th class="p-4 font-semibold">Kontak</th><th class="p-4 font-semibold text-right">Aksi</th></tr></thead><tbody id="company-table-body"></tbody></table></div></div></main>
+            </div>
+            <div id="transaksi-view" class="view-container flex-1 flex-col overflow-hidden hidden">
+                <header class="bg-white border-b p-4 flex justify-between items-center"><h1 class="text-2xl font-bold text-brand-dark">Proses Pesanan</h1><button onclick="showView('troli')" class="text-sm font-semibold text-brand-blue hover:underline">Kembali ke Troli</button></header>
+                <main class="flex-1 overflow-x-hidden overflow-y-auto p-6"><div class="bg-white p-6 rounded-lg shadow max-w-3xl mx-auto"><form id="transaction-form" class="space-y-6"><div><label for="company-select" class="block text-sm font-medium text-gray-700">Perusahaan Pemesan</label><select id="company-select" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue"></select></div><div><h3 class="text-lg font-medium text-gray-900">Detail Pesanan</h3><div id="transaksi-product-list" class="mt-2 space-y-2"></div></div><div class="text-right border-t pt-4"><p class="text-lg font-bold text-brand-dark">Total: <span id="transaksi-total"></span></p></div><div><label for="payment-method" class="block text-sm font-medium text-gray-700">Metode Pembayaran</label><select id="payment-method" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue"><option>Transfer Bank</option><option>Tunai</option></select></div><div><label for="delivery-location" class="block text-sm font-medium text-gray-700">Detail Lokasi Pengiriman</label><div class="flex items-center space-x-2 mt-1"><textarea id="delivery-location" rows="3" class="flex-grow block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue" placeholder="Isi alamat lengkap..."></textarea><button type="button" onclick="alert('Fitur peta belum tersedia.')" class="p-3 bg-gray-100 rounded-md hover:bg-gray-200"><i data-lucide="map-pin" class="w-5 h-5 text-gray-600"></i></button></div></div><div class="pt-4 text-right"><button type="submit" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-blue hover:bg-brand-dark">Proses Pesanan</button></div></form></div></main>
+            </div>
+            <div id="laporan-view" class="view-container flex-1 flex flex-col overflow-hidden hidden">
+                 <header class="bg-white border-b p-4"><h1 class="text-2xl font-bold text-brand-dark">Laporan Lengkap</h1></header>
+                 <main class="flex-1 overflow-x-hidden overflow-y-auto p-6"><div class="bg-white p-6 rounded-lg shadow"><div class="flex flex-wrap justify-between items-center mb-4"><h3 class="text-xl font-bold text-brand-dark">Laporan Penjualan Rinci</h3><div class="flex items-center space-x-2"><button onclick="alert('Fitur filter harian belum diimplementasikan.')" class="px-3 py-1 text-sm font-semibold text-white bg-brand-blue rounded-full">Harian</button><button onclick="alert('Fitur filter mingguan belum diimplementasikan.')" class="px-3 py-1 text-sm font-semibold text-gray-600 bg-gray-200 rounded-full">Mingguan</button><button onclick="alert('Fitur filter bulanan belum diimplementasikan.')" class="px-3 py-1 text-sm font-semibold text-gray-600 bg-gray-200 rounded-full">Bulanan</button><button onclick="alert('Fitur ekspor belum diimplementasikan.')" class="px-3 py-1 text-sm font-semibold text-gray-600 bg-gray-200 rounded-full flex items-center"><i data-lucide="download" class="w-4 h-4 mr-2"></i>Ekspor</button></div></div><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="bg-gray-50 border-b"><th class="p-4 font-semibold">ID Transaksi</th><th class="p-4 font-semibold">Tanggal</th><th class="p-4 font-semibold">Pelanggan</th><th class="p-4 font-semibold">Total</th><th class="p-4 font-semibold">Status</th><th class="p-4 font-semibold text-right">Aksi</th></tr></thead><tbody id="report-table-body"></tbody></table></div></div></main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Perusahaan -->
+    <div id="add-company-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-3"><h3 id="company-modal-title" class="text-xl font-bold text-brand-dark">Tambah Perusahaan Baru</h3><button onclick="closeCompanyModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+            <form id="add-company-form" class="space-y-4">
+                <input type="hidden" id="company-id">
+                <div><label for="company-name" class="block text-sm font-medium text-gray-700">Nama Perusahaan</label><input type="text" id="company-name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue"></div>
+                <div><label for="company-sector" class="block text-sm font-medium text-gray-700">Sektor Usaha</label><input type="text" id="company-sector" required placeholder="Contoh: Agrikultur, Perikanan" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue"></div>
+                <div><label for="company-contact" class="block text-sm font-medium text-gray-700">Kontak Person</label><input type="text" id="company-contact" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue"></div>
+                <div class="pt-4 flex justify-end space-x-3"><button type="button" onclick="closeCompanyModal()" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md hover:bg-gray-300">Batal</button><button type="submit" class="bg-brand-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-brand-dark">Simpan</button></div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // --- KUNCI SINKRONISASI DATA ---
+        const DB_PRODUCTS_KEY = 'gerbangPanganProducts'; // Sumber data produk dari admin utama
+        const PERUMDA_CART_KEY = 'perumdaCart'; // Troli belanja khusus Perumda
+        const PERUMDA_ORDERS_KEY = 'perumdaOrders'; // Pesanan dari Perumda untuk dibaca admin utama
+        const PERUMDA_COMPANIES_KEY = 'perumdaCompanies'; // Data perusahaan rekanan Perumda
+
+        // --- MANAJEMEN DATA (via localStorage) ---
+        let toastTimeout;
+        const getProducts = () => JSON.parse(localStorage.getItem(DB_PRODUCTS_KEY)) || [];
+        const getCompanies = () => JSON.parse(localStorage.getItem(PERUMDA_COMPANIES_KEY)) || [{ id: 1, name: 'PT. Manufaktur Sejahtera', sector: 'Manufaktur', status: 'Aktif', contact: 'Bapak Agung' }];
+        const saveCompanies = (data) => localStorage.setItem(PERUMDA_COMPANIES_KEY, JSON.stringify(data));
+        const getReports = () => JSON.parse(localStorage.getItem(PERUMDA_ORDERS_KEY)) || [];
+        const saveReports = (data) => localStorage.setItem(PERUMDA_ORDERS_KEY, JSON.stringify(data));
+        const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+
+        // --- FUNGSI UI GLOBAL ---
+        window.showToast = (message) => { const t = document.getElementById('toast-notification'), m = document.getElementById('toast-message'); if (toastTimeout) clearTimeout(toastTimeout); m.textContent = message; t.classList.add('show'); toastTimeout = setTimeout(() => t.classList.remove('show'), 3000); };
+        
+        window.showView = (viewName) => {
+            document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`${viewName}-view`)?.classList.remove('hidden');
+            document.querySelectorAll('#sidebar-nav .nav-link').forEach(l => {
+                l.classList.remove('text-white', 'bg-brand-blue');
+                l.classList.add('text-gray-600', 'hover:bg-light-bg');
+                const isMarketRelated = ['market', 'troli', 'transaksi'].includes(viewName) && l.dataset.view === 'market';
+                if (l.dataset.view === viewName || isMarketRelated) {
+                    l.classList.add('text-white', 'bg-brand-blue');
+                    l.classList.remove('text-gray-600', 'hover:bg-light-bg');
+                }
+            });
+            renderViewContent(viewName);
+            lucide.createIcons();
+        };
+
+        window.logout = () => {
+            showToast('Anda berhasil keluar. Mengalihkan...');
+            localStorage.removeItem(PERUMDA_CART_KEY);
+            sessionStorage.removeItem('perumda_token');
+            setTimeout(() => { window.location.href = 'perumda_login.html'; }, 1500);
+        };
+
+        // --- LOGIKA RENDER KONTEN ---
+        function renderViewContent(viewName) {
+            const renderMap = {
+                'dashboard': () => { renderSummaryCards(); renderSalesChart(); },
+                'stok': renderStokTable,
+                'market': renderMarketGrid,
+                'perusahaan': renderCompanyTable,
+                'laporan': renderLaporanTable,
+                'troli': renderTroliView,
+                'transaksi': renderTransaksiView,
+            };
+            renderMap[viewName]?.();
+        }
+
+        function renderSummaryCards() {
+            const reports = getReports();
+            const companies = getCompanies();
+            document.getElementById('summary-total-sales').textContent = formatRupiah(reports.reduce((sum, trx) => sum + trx.total, 0));
+            document.getElementById('summary-completed-trx').textContent = reports.filter(trx => trx.status === 'Selesai').length;
+            document.getElementById('summary-pending-trx').textContent = reports.filter(trx => trx.status !== 'Selesai').length;
+            document.getElementById('summary-total-partners').textContent = companies.length;
+        }
+
+        function renderStokTable() {
+            const products = getProducts();
+            const tbody = document.getElementById('stock-table-body');
+            tbody.innerHTML = products.map(p => {
+                let sClass = 'text-green-600', sText = 'Aman';
+                if (p.stock === 0) { sClass = 'text-red-600'; sText = 'Habis'; }
+                else if (p.stock < p.threshold) { sClass = 'text-yellow-600'; sText = 'Menipis'; }
+                return `<tr class="border-b hover:bg-light-bg"><td class="p-4 font-medium">${p.name}</td><td class="p-4">${p.stock.toLocaleString('id-ID')}</td><td class="p-4">${p.unit}</td><td class="p-4 font-bold ${sClass}">${sText}</td></tr>`;
+            }).join('');
+        }
+
+        function renderMarketGrid() {
+            const products = getProducts();
+            const grid = document.getElementById('market-product-grid');
+            grid.innerHTML = products.map(p => {
+                const oos = p.stock <= 0;
+                return `<div class="bg-white rounded-lg shadow border border-gray-200 flex flex-col ${oos ? 'opacity-60' : ''}">
+                    <img src="${p.image}" alt="${p.name}" class="rounded-t-lg h-40 object-cover">
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h4 class="text-lg font-bold text-brand-dark">${p.name}</h4>
+                        <p class="text-sm text-gray-500">${p.stock.toLocaleString('id-ID')} ${p.unit} tersedia</p>
+                        <p class="text-xl font-bold text-brand-blue my-2">${formatRupiah(p.price)} / ${p.unit}</p>
+                        <button onclick="addToCart(${p.id})" ${oos ? 'disabled' : ''} class="order-btn mt-auto w-full py-2 bg-brand-blue text-white font-semibold rounded-lg hover:bg-brand-dark transition ${oos ? 'cursor-not-allowed bg-gray-400' : ''}">Tambah ke Troli</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderLaporanTable() {
+            const reports = getReports();
+            const tbody = document.getElementById('report-table-body');
+            tbody.innerHTML = reports.map(item => {
+                let sClass = item.status === 'Selesai' ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100';
+                if (item.status === 'Menunggu Verifikasi') sClass = 'text-orange-600 bg-orange-100';
+                return `<tr class="border-b hover:bg-light-bg">
+                    <td class="p-4 font-mono text-sm">${item.id}</td><td class="p-4">${new Date(item.date).toLocaleString('id-ID')}</td><td class="p-4 font-medium">${item.customer}</td>
+                    <td class="p-4">${formatRupiah(item.total)}</td><td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${sClass}">${item.status}</span></td>
+                    <td class="p-4 text-right"><button onclick="printInvoice('${item.id}')" class="text-brand-blue hover:underline text-sm font-semibold">Cetak Invoice</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // --- LOGIKA TROLl BELANJA ---
+        window.addToCart = (productId) => {
+            const product = getProducts().find(p => p.id === productId);
+            if (!product) return;
+            let cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || [];
+            const existingItem = cart.find(item => item.id === product.id);
+            if (existingItem) {
+                if (existingItem.quantity < product.stock) { existingItem.quantity++; showToast(`${product.name} ditambahkan!`); }
+                else { showToast(`Stok ${product.name} tidak mencukupi.`); }
+            } else {
+                cart.push({ ...product, quantity: 1 });
+                showToast(`${product.name} ditambahkan ke troli!`);
+            }
+            localStorage.setItem(PERUMDA_CART_KEY, JSON.stringify(cart));
+            updateCartBadge();
+        };
+
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || [];
+            document.getElementById('market-cart-count').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+        }
+
+        function renderTroliView() { 
+            const container = document.getElementById('cart-items-container');
+            const cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || [];
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="text-center py-12"><i data-lucide="shopping-cart" class="w-16 h-16 mx-auto text-gray-300"></i><h3 class="mt-4 text-xl font-semibold text-gray-700">Troli Anda Kosong</h3><p class="text-gray-500 mt-1">Silakan kembali ke market untuk memilih produk.</p></div>`;
+                lucide.createIcons();
+                return;
+            }
+            let itemsHTML = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                return `<div class="flex items-center justify-between p-4 border rounded-lg">
+                            <div class="flex items-center space-x-4"><img src="${item.image}" alt="${item.name}" class="w-16 h-16 rounded-md object-cover"><div><p class="font-bold text-lg">${item.name}</p><p class="text-sm text-gray-500">${formatRupiah(item.price)} / ${item.unit}</p></div></div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2"><button onclick="changeQuantity(${item.id}, -1)" class="p-1 rounded-full bg-gray-200 hover:bg-gray-300">-</button><span class="font-semibold w-8 text-center">${item.quantity}</span><button onclick="changeQuantity(${item.id}, 1)" class="p-1 rounded-full bg-gray-200 hover:bg-gray-300">+</button></div>
+                                <p class="font-bold w-32 text-right">${formatRupiah(itemTotal)}</p><button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                            </div>
+                        </div>`;
+            }).join('');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            container.innerHTML = `<h3 class="text-xl font-bold text-brand-dark mb-4">Ringkasan Pesanan</h3><div class="space-y-4">${itemsHTML}</div><div class="text-right mt-6 border-t pt-4"><p class="text-2xl font-bold">Total: <span class="text-brand-blue">${formatRupiah(total)}</span></p><button onclick="showView('transaksi')" class="mt-4 py-2 px-6 bg-brand-blue text-white font-semibold rounded-lg hover:bg-brand-dark transition">Lanjut ke Pembayaran</button></div>`;
+            lucide.createIcons();
+        }
+        window.changeQuantity = (productId, delta) => { let cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || []; const itemIndex = cart.findIndex(i => i.id === productId); if (itemIndex > -1) { const newQuantity = cart[itemIndex].quantity + delta; if (newQuantity > 0 && newQuantity <= cart[itemIndex].stock) { cart[itemIndex].quantity = newQuantity; } else if (newQuantity <= 0) { cart.splice(itemIndex, 1); } else { showToast(`Stok tidak mencukupi.`); } localStorage.setItem(PERUMDA_CART_KEY, JSON.stringify(cart)); renderTroliView(); updateCartBadge(); } };
+        window.removeFromCart = (productId) => { let cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || []; cart = cart.filter(i => i.id !== productId); localStorage.setItem(PERUMDA_CART_KEY, JSON.stringify(cart)); renderTroliView(); updateCartBadge(); showToast('Produk dihapus dari troli.'); };
+        
+        // --- LOGIKA TRANSAKSI ---
+        function renderTransaksiView() { 
+            const cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || [];
+            const companies = getCompanies();
+            document.getElementById('company-select').innerHTML = companies.filter(c => c.status === 'Aktif').map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('transaksi-product-list').innerHTML = cart.map(item => `<div class="flex justify-between text-sm"><p>${item.name} (x${item.quantity})</p><p>${formatRupiah(item.price * item.quantity)}</p></div>`).join('');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('transaksi-total').textContent = formatRupiah(total);
+        }
+
+        document.getElementById('transaction-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cart = JSON.parse(localStorage.getItem(PERUMDA_CART_KEY)) || [];
+            if (cart.length === 0) { showToast('Troli kosong!'); return; }
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const newOrder = {
+                id: `PRM-${Date.now().toString().slice(-5)}`,
+                date: new Date().toISOString(),
+                customer: document.getElementById('company-select').value,
+                total: total,
+                status: 'Menunggu Verifikasi', // Status awal untuk dibaca admin utama
+                items: cart.map(i => ({ name: i.name, quantity: i.quantity, unit: i.unit, price: i.price }))
+            };
+            let reports = getReports();
+            reports.unshift(newOrder);
+            saveReports(reports); // Simpan ke localStorage untuk dibaca admin utama
+            localStorage.removeItem(PERUMDA_CART_KEY);
+            updateCartBadge();
+            showToast('Pesanan berhasil dibuat dan dikirim ke Admin Koperasi!');
+            showView('laporan');
+        });
+
+        // --- FUNGSI LAINNYA (DUMMY/PLACEHOLDER) ---
+        function renderCompanyTable() {
+            const companies = getCompanies();
+            const tbody = document.getElementById('company-table-body');
+            tbody.innerHTML = companies.map(c => {
+                const statusClass = c.status === 'Aktif' ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
+                return `<tr class="border-b hover:bg-light-bg">
+                    <td class="p-4 font-medium">${c.name}</td>
+                    <td class="p-4">${c.sector}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${c.status}</span></td>
+                    <td class="p-4">${c.contact}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="openCompanyModal(${c.id})" class="text-brand-blue hover:underline text-sm font-semibold">Edit</button>
+                        <button onclick="deleteCompany(${c.id})" class="text-red-500 hover:underline text-sm font-semibold ml-2">Hapus</button>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        document.getElementById('add-company-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const companies = getCompanies();
+            const companyId = document.getElementById('company-id').value;
+            const companyData = {
+                name: document.getElementById('company-name').value,
+                sector: document.getElementById('company-sector').value,
+                contact: document.getElementById('company-contact').value,
+            };
+
+            if (companyId) { // Edit
+                const index = companies.findIndex(c => c.id == companyId);
+                if (index > -1) companies[index] = { ...companies[index], ...companyData };
+                showToast('Data perusahaan berhasil diperbarui.');
+            } else { // Tambah baru
+                companyData.id = Date.now();
+                companyData.status = 'Aktif'; // Status default
+                companies.unshift(companyData);
+                showToast('Perusahaan baru berhasil ditambahkan.');
+            }
+            saveCompanies(companies);
+            renderCompanyTable();
+            closeCompanyModal();
+        });
+
+        window.deleteCompany = (companyId) => { if (confirm('Apakah Anda yakin ingin menghapus perusahaan ini?')) { let companies = getCompanies(); companies = companies.filter(c => c.id !== companyId); saveCompanies(companies); renderCompanyTable(); showToast('Perusahaan berhasil dihapus.'); } };
+        let salesChartInstance;
+        function renderSalesChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const reports = getReports();
+            
+            // Data dummy untuk 7 hari terakhir
+            const labels = Array.from({length: 7}).map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                return d.toLocaleDateString('id-ID', { weekday: 'short' });
+            }).reverse();
+
+            // Simulasi data penjualan untuk 7 hari terakhir
+            const data = labels.map(() => Math.floor(Math.random() * 5000000));
+
+            if (salesChartInstance) {
+                salesChartInstance.destroy();
+            }
+            salesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Penjualan', data, borderColor: '#0A74DA', backgroundColor: 'rgba(10, 116, 218, 0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        window.printInvoice = (transactionId) => { alert(`Fungsi cetak invoice untuk ID: ${transactionId} belum diimplementasikan.`); }
+        window.openCompanyModal = (companyId = null) => { const modal = document.getElementById('add-company-modal'); const form = document.getElementById('add-company-form'); form.reset(); document.getElementById('company-id').value = ''; if (companyId) { const company = getCompanies().find(c => c.id === companyId); if (company) { document.getElementById('company-modal-title').textContent = 'Edit Data Perusahaan'; document.getElementById('company-id').value = company.id; document.getElementById('company-name').value = company.name; document.getElementById('company-sector').value = company.sector; document.getElementById('company-contact').value = company.contact; } } else { document.getElementById('company-modal-title').textContent = 'Tambah Perusahaan Baru'; } modal.classList.add('visible'); };
+        window.closeCompanyModal = () => { document.getElementById('add-company-modal').classList.remove('visible'); }
+
+        // --- INISIALISASI HALAMAN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            updateCartBadge();
+            showView('dashboard');
+        });
+    </script>
+</body>
+</html>

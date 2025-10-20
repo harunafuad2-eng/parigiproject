@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Admin Pemerintah Daerah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SUPABASE JS CLIENT -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="logogpid.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-brand-dark { background-color: #1F2937; } /* Dark blue/gray for Pemda */
+        .hover\:bg-brand-darker:hover { background-color: #111827; }
+        .focus\:ring-brand-dark:focus { --tw-ring-color: #374151; }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center h-screen">
+
+    <div class="w-full max-w-md">
+        <form id="pemda-login-form" class="bg-white shadow-2xl rounded-2xl px-8 pt-10 pb-8 mb-4">
+            <div class="mb-8 text-center">
+                <img src="logogpid.png" alt="Logo Gerbang Pangan" class="w-16 h-16 mx-auto mb-4">
+                <h1 class="text-2xl font-bold text-slate-800">Admin Pemda Login</h1>
+                <p class="text-slate-500">Dashboard Monitoring Terpusat</p>
+            </div>
+            <div id="error-message" class="hidden bg-rose-100 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                <strong class="font-bold">Gagal!</strong>
+                <span id="error-text" class="block sm:inline">Username atau password salah.</span>
+            </div>
+            <div class="mb-4">
+                <label class="block text-slate-700 text-sm font-bold mb-2" for="email">
+                    Username (Email)
+                </label>
+                <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-brand-dark" id="email" type="email" placeholder="superadmin@pemda.go.id" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-slate-700 text-sm font-bold mb-2" for="password">
+                    Password
+                </label>
+                <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-slate-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-brand-dark" id="password" type="password" placeholder="******************" required>
+            </div>
+            <div class="flex items-center justify-between">
+                <button id="login-button" class="bg-brand-dark hover:bg-brand-darker text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition-colors" type="submit">
+                    Masuk
+                </button>
+            </div>
+        </form>
+        <p class="text-center text-slate-500 text-xs">
+            &copy;2025 Gerbang Pangan Indonesia.
+        </p>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('pemda-login-form');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const loginButton = document.getElementById('login-button');
+
+        const SUPABASE_URL = 'https://fgfmceegyjmlncstjqpm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZm1jZWVneWptbG5jc3RqcXBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MzAxNzQsImV4cCI6MjA3NjUwNjE3NH0.ok4DMG7uM2EaBtCDqoKAg1OfBKtqK7lthqINczWa698';
+        
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            errorMessage.classList.add('hidden');
+            loginButton.disabled = true;
+            loginButton.textContent = 'Memproses...';
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (authError) {
+                errorText.textContent = authError.message;
+                errorMessage.classList.remove('hidden');
+                loginButton.disabled = false;
+                loginButton.textContent = 'Masuk';
+                return;
+            }
+
+            if (authData.user) {
+                const { data: profile, error: profileError } = await _supabase
+                    .from('profiles')
+                    .select('role, status')
+                    .eq('user_id', authData.user.id)
+                    .single();
+
+                if (profileError || !profile) {
+                    errorText.textContent = 'Gagal memverifikasi profil. Pastikan data di tabel profiles sudah benar.';
+                    errorMessage.classList.remove('hidden');
+                    await _supabase.auth.signOut();
+                } else if (profile.role !== 'Admin Pemda' && profile.role !== 'Super Admin') {
+                    errorText.textContent = 'Akses ditolak. Peran Anda bukan Admin Pemda.';
+                    errorMessage.classList.remove('hidden');
+                    await _supabase.auth.signOut();
+                } else if (profile.status !== 'Aktif') {
+                    errorText.textContent = 'Akun Anda tidak aktif.';
+                    errorMessage.classList.remove('hidden');
+                    await _supabase.auth.signOut();
+                } else {
+                    window.location.href = 'admin_besar_pemda.html';
+                    return;
+                }
+            }
+            
+            loginButton.disabled = false;
+            loginButton.textContent = 'Masuk';
+        });
+    </script>
+
+</body>
+</html>

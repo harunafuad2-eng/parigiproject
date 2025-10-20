@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Tanam - Gerbang Pangan</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="logogpid.png" type="image/png">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .fc .fc-button-primary {
+            background-color: #3B82F6; 
+            border-color: #3B82F6;
+        }
+        .fc .fc-daygrid-day.fc-day-today {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 flex items-center sticky top-0 z-10">
+        <a href="apk_dashboard_petani.html" class="p-2 rounded-full hover:bg-gray-100">
+            <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+        </a>
+        <h1 class="text-lg font-bold text-gray-800 mx-auto">Jadwal Tanam Saya</h1>
+        <div class="w-10"></div> <!-- Spacer -->
+    </header>
+
+    <main class="p-4">
+        <div id="calendar-container" class="bg-white p-4 rounded-lg shadow">
+            <div id="calendar"></div>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button id="add-event-btn" class="fixed bottom-20 right-5 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Add/Edit Event Modal -->
+    <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 transform scale-95 transition-transform">
+            <h3 id="modal-title" class="text-xl font-bold mb-4">Tambah Jadwal Tanam</h3>
+            <form id="event-form" class="space-y-4">
+                <input type="hidden" id="event-id">
+                <div>
+                    <label for="event-title" class="block text-sm font-medium text-gray-700">Nama Tanaman/Aktivitas</label>
+                    <input type="text" id="event-title" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="start-date" class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                    <input type="date" id="start-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="end-date" class="block text-sm font-medium text-gray-700">Tanggal Selesai (Opsional)</label>
+                    <input type="date" id="end-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Batal</button>
+                    <button type="submit" id="save-event-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan</button>
+                    <button type="button" id="delete-event-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 hidden">Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const DB_SCHEDULES_KEY = 'gerbangPanganSchedules';
+            const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+
+            if (!loggedInUserEmail) {
+                window.location.replace('apk_login.html');
+                return;
+            }
+
+            const calendarEl = document.getElementById('calendar');
+            const modal = document.getElementById('event-modal');
+            const form = document.getElementById('event-form');
+            const eventIdInput = document.getElementById('event-id');
+            const eventTitleInput = document.getElementById('event-title');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            const deleteBtn = document.getElementById('delete-event-btn');
+
+            const getSchedules = () => {
+                const allSchedules = JSON.parse(localStorage.getItem(DB_SCHEDULES_KEY)) || [];
+                // Filter schedules for the logged-in user and type 'tanam'
+                return allSchedules.filter(e => e.user === loggedInUserEmail && e.type === 'tanam');
+            };
+
+            const saveSchedules = (schedules) => {
+                const allSchedules = JSON.parse(localStorage.getItem(DB_SCHEDULES_KEY)) || [];
+                // Remove old schedules for this user and type
+                const otherSchedules = allSchedules.filter(e => e.user !== loggedInUserEmail || e.type !== 'tanam');
+                const updatedSchedules = [...otherSchedules, ...schedules];
+                localStorage.setItem(DB_SCHEDULES_KEY, JSON.stringify(updatedSchedules));
+            };
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'id',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listWeek'
+                },
+                events: getSchedules(),
+                eventClick: function(info) {
+                    openModal(info.event);
+                },
+                dateClick: function(info) {
+                    openModal(null, info.dateStr);
+                }
+            });
+
+            calendar.render();
+
+            function openModal(event = null, dateStr = null) {
+                form.reset();
+                deleteBtn.classList.add('hidden');
+                if (event) {
+                    eventIdInput.value = event.id;
+                    eventTitleInput.value = event.title;
+                    startDateInput.value = event.startStr;
+                    endDateInput.value = event.end ? event.endStr : '';
+                    deleteBtn.classList.remove('hidden');
+                } else {
+                    eventIdInput.value = '';
+                    startDateInput.value = dateStr;
+                }
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.querySelector('.transform').classList.remove('scale-95'), 10);
+            }
+
+            function closeModal() {
+                modal.querySelector('.transform').classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+
+            document.getElementById('add-event-btn').addEventListener('click', () => openModal());
+            document.getElementById('cancel-btn').addEventListener('click', closeModal);
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                let schedules = getSchedules();
+                const eventId = eventIdInput.value;
+                const newEvent = {
+                    id: eventId || Date.now().toString(),
+                    title: eventTitleInput.value,
+                    start: startDateInput.value,
+                    end: endDateInput.value || null,
+                    type: 'tanam', // Hardcoded for this page
+                    user: loggedInUserEmail, // Associate with user
+                    backgroundColor: '#10B981' // Green color for planting
+                };
+
+                if (eventId) {
+                    schedules = schedules.map(e => e.id === eventId ? newEvent : e);
+                } else {
+                    schedules.push(newEvent);
+                }
+
+                saveSchedules(schedules);
+                calendar.refetchEvents();
+                closeModal();
+            });
+
+            deleteBtn.addEventListener('click', function() {
+                const eventId = eventIdInput.value;
+                if (confirm('Anda yakin ingin menghapus jadwal ini?')) {
+                    let schedules = getSchedules().filter(e => e.id !== eventId);
+                    saveSchedules(schedules);
+                    calendar.refetchEvents();
+                    closeModal();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

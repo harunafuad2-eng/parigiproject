@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PERUMDA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Jika sudah login, langsung redirect ke dashboard
+        if (sessionStorage.getItem('perumda_token')) {
+            window.location.href = 'Perumda_dashboard.html';
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Menggunakan warna brand dari dashboard_prum.html */
+        .bg-brand-blue { background-color: #0A74DA; }
+        .hover\:bg-brand-dark:hover { background-color: #053B6C; }
+        .focus\:ring-brand-blue:focus {
+            --tw-ring-color: #0A74DA;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center h-screen">
+
+    <div class="w-full max-w-md">
+        <form id="perumda-login-form" class="bg-white shadow-2xl rounded-2xl px-8 pt-10 pb-8 mb-4">
+            <div class="mb-8 text-center">
+                <h1 class="text-2xl font-bold text-slate-800">PERUMDA Login</h1>
+                <p class="text-slate-500">Panel Admin Perusahaan Daerah</p>
+            </div>
+            <div id="error-message" class="hidden bg-rose-100 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                <strong class="font-bold">Gagal!</strong>
+                <span class="block sm:inline">Username atau password salah.</span>
+            </div>
+            <div class="mb-4">
+                <label class="block text-slate-700 text-sm font-bold mb-2" for="username">
+                    Username
+                </label>
+                <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-brand-blue" id="username" type="text" placeholder="perumda" value="perumda">
+            </div>
+            <div class="mb-6">
+                <label class="block text-slate-700 text-sm font-bold mb-2" for="password">
+                    Password
+                </label>
+                <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-slate-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-brand-blue" id="password" type="password" placeholder="******************" value="perumda123">
+            </div>
+            <div class="flex items-center justify-between">
+                <button class="bg-brand-blue hover:bg-brand-dark text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition-colors" type="submit">
+                    Masuk
+                </button>
+            </div>
+        </form>
+        <p class="text-center text-slate-500 text-xs">
+            &copy;2025 Gerbang Pangan Indonesia.
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('perumda-login-form');
+            const errorMessage = document.getElementById('error-message');
+
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                // --- Simulasi otentikasi untuk Perumda ---
+                if (username === 'perumda' && password === 'perumda123') {
+                    const token = 'perumda_dummy_token_' + Date.now();
+                    sessionStorage.setItem('perumda_token', token);
+                    window.location.href = 'Perumda_dashboard.html';
+                } else {
+                    errorMessage.classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

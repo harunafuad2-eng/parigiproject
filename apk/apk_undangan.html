@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan & Undangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-green': '#10B981',
+                        'custom-green-dark': '#047857',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="sticky top-0 bg-white shadow-sm z-10">
+            <div class="flex justify-between items-center p-4">
+                <button onclick="window.location.href = 'apk_dashboard.html';" class="text-custom-green text-3xl font-bold rounded-full p-1 hover:bg-gray-100 transition active:scale-95">&larr;</button>
+                <h1 class="text-2xl font-normal text-gray-800">Pesan & Undangan</h1>
+                <div class="w-8"></div> <!-- Spacer -->
+            </div>
+        </header>
+
+        <main class="p-4 md:p-6">
+            <div id="replies-list" class="space-y-4">
+                <!-- Daftar balasan akan dirender di sini -->
+            </div>
+
+            <div id="no-replies-placeholder" class="hidden text-center py-16">
+                <i data-lucide="mail-off" class="w-16 h-16 mx-auto text-gray-300"></i>
+                <p class="mt-4 text-lg font-semibold text-gray-600">Kotak Masuk Kosong</p>
+                <p class="mt-1 text-sm text-gray-500">Belum ada balasan atau undangan dari admin.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- PERBAIKAN LOGIKA: Ambil data pengguna yang sedang login ---
+            const REQUESTS_KEY = 'gerbangPanganProductRequests';
+            const CUSTOMERS_KEY = 'gerbangPanganCustomers';
+            const listContainer = document.getElementById('replies-list');
+            const placeholder = document.getElementById('no-replies-placeholder');
+
+            // --- PERBAIKAN LOGIKA: Ambil data pengguna yang sedang login ---
+            const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+            const customers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY) || '[]');
+            const currentUser = customers.find(c => c.email === loggedInUserEmail);
+
+            if (!currentUser) {
+                // Jika tidak ada data pengguna, tampilkan placeholder dan hentikan
+                placeholder.classList.remove('hidden');
+                lucide.createIcons();
+                return;
+            }
+            const currentUserName = currentUser.name;
+            // --- AKHIR PERBAIKAN ---
+
+            const getRequests = () => JSON.parse(localStorage.getItem(REQUESTS_KEY) || '[]');
+            const saveRequests = (reqs) => localStorage.setItem(REQUESTS_KEY, JSON.stringify(reqs));
+
+            // 1. Ambil semua permintaan dan filter hanya untuk pengguna yang login
+            let requests = getRequests();
+            // PERBAIKAN: Filter hanya untuk permintaan dari pengguna ini yang sudah dibalas
+            const userRepliedRequests = requests.filter(r => r.user === currentUserName && r.reply);
+
+            if (userRepliedRequests.length === 0) {
+                placeholder.classList.remove('hidden');
+            } else {
+                // 2. Render balasan ke halaman
+                userRepliedRequests.sort((a, b) => new Date(b.replyDate) - new Date(a.date)).forEach(req => {
+                    const replyHTML = `
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                            <div class="bg-gray-50 p-3 border-b rounded-t-lg">
+                                <p class="text-xs text-gray-500">Permintaan Anda pada ${new Date(req.date).toLocaleDateString('id-ID')}:</p>
+                                <p class="text-sm text-gray-700 italic">"${req.request}"</p>
+                            </div>
+                            <div class="bg-emerald-50 p-4 rounded-b-lg">
+                                <p class="text-xs text-emerald-700 font-semibold">Balasan Admin pada ${new Date(req.replyDate).toLocaleDateString('id-ID')}:</p>
+                                <p class="text-sm text-emerald-900 mt-1">${req.reply}</p>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.insertAdjacentHTML('beforeend', replyHTML);
+                });
+            }
+
+            // 3. PERBAIKAN: Tandai balasan untuk pengguna ini saja sebagai "sudah dilihat"
+            requests.forEach(r => {
+                if (r.user === currentUserName && r.reply) {
+                    r.userHasSeenReply = true;
+                }
+            });
+            saveRequests(requests);
+
+            // 4. Render ikon
+            lucide.createIcons();
+        });
+    </script>
+
+</body>
+</html>

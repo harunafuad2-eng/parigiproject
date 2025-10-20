@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - KABUPATEN PARIGI MOUTONG</title>
+    <!-- CDN Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="logogpid.png" type="image/png">
+    <!-- CDN Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-green': '#10B981', // Warna hijau utama
+                        'custom-green-dark': '#047857', // Warna hijau lebih tua
+                        'custom-red': '#EF4444',
+                        'custom-yellow': '#FACC15', // Kuning cerah untuk tombol
+                        'input-bg': '#F3F4F6', // Latar belakang input abu-abu muda
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF;
+            overflow-x: hidden; 
+        }
+
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #FFFFFF; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.6s ease-out; 
+            overflow: hidden;
+        }
+        
+        #splash-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        @keyframes logo-bounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .logo-splash {
+            animation: logo-bounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        #login-content {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px); 
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        #login-content.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .green-container {
+            background-color: #10B981;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            min-height: 85vh; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-style {
+            background-color: white; 
+            border: none;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .rounded-pill {
+            border-radius: 9999px;
+        }
+
+        /* Gaya untuk Modal Lupa Password */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal.visible .modal-content {
+            transform: scale(1);
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- 1. LAYAR PEMBUKA (SPLASH SCREEN) -->
+    <div id="splash-screen">
+        <img src="logogpid.png" alt="Logo Gerbang Pangan" class="w-24 h-24 object-contain mb-6 logo-splash">
+        <div class="text-xl font-bold text-gray-800">Gerbang Pangan Indonesia</div>
+    </div>
+
+    <!-- 2. KONTEN MASUK (LOGIN) -->
+    <div id="login-content" class="flex flex-col min-h-screen">
+        <div class="px-4 w-full max-w-md mx-auto"> 
+            <div class="green-container text-white">
+                <div class="p-6 md:p-8 flex flex-col items-center w-full flex-grow">
+                    <img src="logogpid.png" alt="Logo Gerbang Pangan" class="w-20 h-20 object-contain mt-4 md:mt-10 mb-2">
+                    <h2 class="text-white text-base font-bold tracking-widest uppercase mt-2">Gerbang Pangan Indonesia</h2>
+                    <div class="mt-4 mb-6 md:mt-8 md:mb-10 text-center">
+                        <h1 class="text-3xl font-bold text-white tracking-wider">SELAMAT DATANG</h1>
+                        <p class="text-gray-200 text-sm mt-1">Aplikasi Koperasi Digital</p>
+                    </div>
+
+                    <form id="login-form" class="w-full">
+                        <div class="mb-4">
+                            <label for="user-role" class="block text-sm font-bold text-white mb-2">Peran Pengguna</label>
+                            <select id="user-role" name="user-role" required class="w-full px-4 py-3 input-style rounded-2xl focus:ring-custom-green-dark focus:border-custom-green-dark outline-none text-gray-800 transition duration-150">
+                                                        <option value="umum">User Pengguna</option>
+                                                        <option value="petani">User Petani</option>                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="username" class="block text-sm font-bold text-white mb-2">User</label>
+                            <input type="email" id="username" name="username" required class="w-full px-4 py-3 input-style rounded-2xl focus:ring-custom-green-dark focus:border-custom-green-dark outline-none text-gray-800 transition duration-150" placeholder="Masukkan email Anda">
+                            <p id="not-registered-message" class="text-custom-red text-xs mt-1 font-semibold hidden">Pesan Error</p>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-bold text-white mb-2">Password</label>
+                            <div class="relative">
+                                <input type="password" id="password" name="password" required class="w-full pr-10 pl-4 py-3 input-style rounded-2xl focus:ring-custom-green-dark focus:border-custom-green-dark outline-none text-gray-800 transition duration-150" placeholder="Masukkan password">
+                                <button type="button" id="toggle-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 p-1" aria-label="Tampilkan kata sandi">
+                                    <i data-lucide="eye" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div class="flex justify-end mt-2">
+                                <a href="apk_reset_password.html" id="forgot-password-link" class="text-xs font-semibold text-white/90 hover:text-white transition duration-200 underline">Lupa Password?</a>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-custom-yellow text-gray-900 font-extrabold text-lg py-3 rounded-xl hover:bg-yellow-500 transition duration-300 shadow-xl shadow-gray-900/10">Masuk</button>
+                    </form>
+
+                    <button onclick="window.location.href='#'" class="w-full bg-custom-green-dark text-white font-bold text-lg py-3 mt-6 rounded-pill hover:bg-custom-green-dark/80 transition duration-300 shadow-xl shadow-gray-900/10 flex items-center justify-center space-x-2">
+                        <img src="WA.png" alt="WhatsApp Icon" class="w-6 h-6">
+                        <span>Hubungi Admin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex-shrink-0 text-center text-gray-700 text-sm mt-10 mb-8 w-full">
+            Version 1.0
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        lucide.createIcons();
+
+        // --- Konfigurasi Supabase ---
+        const SUPABASE_URL = 'https://fgfmceegyjmlncstjqpm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZm1jZWVneWptbG5jc3RqcXBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MzAxNzQsImV4cCI6MjA3NjUwNjE3NH0.ok4DMG7uM2EaBtCDqoKAg1OfBKtqK7lthqINczWa698';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- Logika Splash Screen ---
+        window.addEventListener('load', () => {
+            const splashScreen = document.getElementById('splash-screen');
+            const loginContent = document.getElementById('login-content');
+            if (window.location.hash) {
+                if(splashScreen) splashScreen.remove();
+                loginContent.classList.add('active');
+                document.body.style.overflow = 'auto';
+            } else {
+                setTimeout(() => {
+                    splashScreen.classList.add('hidden');
+                    setTimeout(() => {
+                        loginContent.classList.add('active');
+                        setTimeout(() => {
+                            if(splashScreen) splashScreen.remove();
+                            document.body.style.overflow = 'auto';
+                        }, 800);
+                    }, 600); 
+                }, 2000); 
+            }
+        });
+
+        // --- Logika Tampilkan/Sembunyikan Password ---
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            const icon = togglePassword.querySelector('i');
+            icon.setAttribute('data-lucide', type === 'text' ? 'eye-off' : 'eye');
+            lucide.createIcons();
+        });
+
+        // --- Logika Login dengan Supabase ---
+        const loginForm = document.getElementById('login-form');
+        const notRegisteredMessage = document.getElementById('not-registered-message');
+        const loginButton = loginForm.querySelector('button[type="submit"]');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const selectedRole = document.getElementById('user-role').value;
+
+            // Nonaktifkan tombol dan tampilkan status loading
+            notRegisteredMessage.classList.add('hidden');
+            loginButton.disabled = true;
+            loginButton.textContent = 'Memproses...';
+
+            // 1. Lakukan proses login dengan Supabase Auth
+            const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (authError) {
+                notRegisteredMessage.textContent = authError.message;
+                notRegisteredMessage.classList.remove('hidden');
+                loginButton.disabled = false;
+                loginButton.textContent = 'Masuk';
+                return;
+            }
+
+            if (authData.user) {
+                // 2. Setelah login berhasil, ambil data profil dari tabel 'customers'
+                // Pastikan Anda memiliki tabel 'customers' dengan kolom 'user_id' yang merujuk ke auth.users.id
+                const { data: customerData, error: customerError } = await _supabase
+                    .from('customers')
+                    .select('role, status')
+                    .eq('user_id', authData.user.id)
+                    .single();
+
+                if (customerError || !customerData) {
+                    notRegisteredMessage.textContent = 'Gagal mengambil data profil pengguna.';
+                    notRegisteredMessage.classList.remove('hidden');
+                    // Logout pengguna jika profil tidak ditemukan untuk keamanan
+                    await _supabase.auth.signOut(); 
+                } else if (customerData.status !== 'Aktif') {
+                    notRegisteredMessage.textContent = 'Akun Anda telah dinonaktifkan.';
+                    notRegisteredMessage.classList.remove('hidden');
+                    await _supabase.auth.signOut();
+                } else if (customerData.role !== selectedRole) {
+                    notRegisteredMessage.textContent = `Peran yang Anda pilih (${selectedRole}) tidak sesuai dengan akun Anda.`;
+                    notRegisteredMessage.classList.remove('hidden');
+                    await _supabase.auth.signOut();
+                } else {
+                    // 3. Jika semua validasi berhasil, alihkan ke dashboard yang sesuai
+                    console.log(`Login berhasil sebagai ${selectedRole}. Mengalihkan...`);
+                    if (selectedRole === 'petani') {
+                        window.location.href = 'apk_dashboard_petani.html';
+                    } else {
+                        window.location.href = 'apk_dashboard.html';
+                    }
+                }
+            }
+            
+            // Aktifkan kembali tombol jika ada kesalahan di luar auth
+            loginButton.disabled = false;
+            loginButton.textContent = 'Masuk';
+        });
+    </script>
+</body>
+</html>

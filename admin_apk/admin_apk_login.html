@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Admin Koperasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SUPABASE JS CLIENT -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-brand-blue { background-color: #2563EB; }
+        .hover\:bg-brand-dark:hover { background-color: #1D4ED8; }
+        .focus\:ring-brand-blue:focus { --tw-ring-color: #2563EB; }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center h-screen">
+
+    <div class="w-full max-w-md">
+        <form id="admin-login-form" class="bg-white shadow-2xl rounded-2xl px-8 pt-10 pb-8 mb-4">
+            <div class="mb-8 text-center">
+                <img src="logogpid.png" alt="Logo Gerbang Pangan" class="w-16 h-16 mx-auto mb-4">
+                <h1 class="text-2xl font-bold text-slate-800">Admin Koperasi Login</h1>
+                <p class="text-slate-500">Panel Manajemen Marketplace</p>
+            </div>
+            <div id="error-message" class="hidden bg-rose-100 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                <strong class="font-bold">Gagal!</strong>
+                <span class="block sm:inline">Username atau password salah.</span>
+            </div>
+            <div class="mb-4">
+                <label class="block text-slate-700 text-sm font-bold mb-2" for="username">
+                    Username (Email)
+                </label>
+                <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-slate-700 leading-tight focus:outline-none focus:ring-2 focus:ring-brand-blue" id="username" type="email" placeholder="admin@koperasi.com" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-slate-700 text-sm font-bold mb-2" for="password">
+                    Password
+                </label>
+                <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-slate-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-brand-blue" id="password" type="password" placeholder="******************" required>
+            </div>
+            <div class="flex items-center justify-between">
+                <button id="login-button" class="bg-brand-blue hover:bg-brand-dark text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition-colors" type="submit">
+                    Masuk
+                </button>
+            </div>
+        </form>
+        <p class="text-center text-slate-500 text-xs">
+            &copy;2025 Gerbang Pangan Indonesia.
+        </p>
+    </div>
+
+    <script>
+        // --- Konfigurasi Supabase ---
+        const SUPABASE_URL = 'https://fgfmceegyjmlncstjqpm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZm1jZWVneWptbG5jc3RqcXBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MzAxNzQsImV4cCI6MjA3NjUwNjE3NH0.ok4DMG7uM2EaBtCDqoKAg1OfBKtqK7lthqINczWa698';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- Cek Sesi Login ---
+        // Fungsi async untuk memeriksa sesi dan mengalihkan jika perlu
+        const checkSession = async () => {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                // Jika ada sesi, verifikasi peran sebelum mengalihkan
+                const { data: profile } = await _supabase
+                    .from('profiles') // Asumsi tabel profil Anda bernama 'profiles'
+                    .select('role')
+                    .eq('user_id', session.user.id)
+                    .single();
+                
+                if (profile && profile.role === 'Admin Koperasi') {
+                    window.location.href = 'admin_apk_dashboard.html';
+                }
+                // Jika tidak ada sesi atau peran tidak sesuai, tetap di halaman login
+            }
+        };
+        // Panggil fungsi saat halaman dimuat
+        checkSession();
+
+
+        // --- Logika Login Form ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('admin-login-form');
+            const errorMessage = document.getElementById('error-message');
+            const errorText = errorMessage.querySelector('span');
+            const loginButton = document.getElementById('login-button');
+
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                errorMessage.classList.add('hidden');
+                loginButton.disabled = true;
+                loginButton.textContent = 'Memproses...';
+
+                const email = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                // 1. Lakukan login dengan Supabase Auth
+                const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (authError) {
+                    errorText.textContent = authError.message;
+                    errorMessage.classList.remove('hidden');
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Masuk';
+                    return;
+                }
+
+                if (authData.user) {
+                    // 2. Verifikasi peran (role) dari tabel 'profiles'
+                    const { data: profile, error: profileError } = await _supabase
+                        .from('profiles') // Ganti 'profiles' jika nama tabel Anda berbeda
+                        .select('role, status')
+                        .eq('user_id', authData.user.id)
+                        .single();
+
+                    if (profileError || !profile) {
+                        errorText.textContent = 'Gagal memverifikasi data admin.';
+                        errorMessage.classList.remove('hidden');
+                        await _supabase.auth.signOut(); // Logout paksa
+                    } else if (profile.role !== 'Admin Koperasi') {
+                        errorText.textContent = 'Anda tidak memiliki hak akses sebagai Admin Koperasi.';
+                        errorMessage.classList.remove('hidden');
+                        await _supabase.auth.signOut(); // Logout paksa
+                    } else if (profile.status !== 'Aktif') {
+                        errorText.textContent = 'Akun Admin Koperasi Anda tidak aktif.';
+                        errorMessage.classList.remove('hidden');
+                        await _supabase.auth.signOut(); // Logout paksa
+                    } else {
+                        // 3. Jika semua verifikasi berhasil, alihkan ke dashboard
+                        console.log('Login sebagai Admin Koperasi berhasil.');
+                        window.location.href = 'admin_apk_dashboard.html';
+                    }
+                }
+                
+                loginButton.disabled = false;
+                loginButton.textContent = 'Masuk';
+            });
+        });
+    </script>
+
+</body>
+</html>

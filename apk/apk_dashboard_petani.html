@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Petani - Gerbang Pangan</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="assets/logogpid.png" type="image/png">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Konfigurasi Kustom untuk Tailwind CSS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-blue': '#3B82F6',
+                        'custom-blue-dark': '#2563EB',
+                        'custom-gray-bg': '#f7f9fb',
+                        'custom-red': '#EF4444',
+                        'custom-yellow': '#FBBF24',
+                        'custom-icon-bg': '#FEF3C7',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Gaya Kustom Tambahan -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+            padding-bottom: 6rem; /* Memberi ruang untuk floating navbar */
+        }
+        
+        #main-content {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        #main-content.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .progress-container {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .menu-icon-wrapper {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--icon-bg-color, #FEF3C7);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            margin: 0 auto 8px;
+        }
+        .menu-icon-wrapper i {
+            color: var(--icon-fg-color, #FBBF24);
+            width: 32px;
+            height: 32px;
+        }
+
+        .slider-wrapper {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .slider-wrapper::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        
+        .dropdown-active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: scale(1) !important;
+        }
+
+        /* Gaya untuk Modal (Pop-up) */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <main id="main-content" class="p-4 md:p-6">
+        
+        <!-- 1. HEADER: Logo, Nama Aplikasi, dan Notifikasi -->
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-3">
+                <img src="logogpid.png" alt="Logo Gerbang Pangan" class="w-10 h-10 object-contain">
+                <div class="flex flex-col justify-center">
+                    <h1 class="text-base font-bold text-gray-800 leading-tight">Gerbang Pangan</h1>
+                    <p class="text-xs text-gray-500 leading-tight">Indonesia</p>
+                </div>
+            </div>
+            
+            <div class="relative">
+                <button id="notification-button" class="p-2 text-gray-600 hover:text-custom-blue transition relative">
+                    <i data-lucide="bell" class="w-6 h-6"></i>
+                    <span id="notification-badge" class="absolute top-1 right-1 block w-3 h-3 bg-custom-red rounded-full ring-2 ring-white hidden"></span>
+                </button>
+        
+                <div id="notification-dropdown" class="absolute right-0 mt-2 w-72 xs:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 opacity-0 invisible transition-all duration-300 transform scale-95 origin-top-right">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800">Pemberitahuan</h4>
+                        <button id="mark-all-read" class="text-xs text-custom-blue hover:text-custom-blue-dark">Tandai Sudah Baca</button>
+                    </div>
+                    <ul id="notification-list" class="divide-y divide-gray-100 max-h-60 overflow-y-auto"></ul>
+                    <div id="no-notifications" class="text-center py-6 text-sm text-gray-500 hidden">
+                        Tidak ada notifikasi baru.
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. KARTU PROFIL PENGGUNA -->
+        <div class="bg-custom-blue p-4 rounded-xl shadow-lg flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <div id="profile-picture-container" class="w-12 h-12 bg-white rounded-full border-2 border-white/50 shadow-inner flex items-center justify-center overflow-hidden">
+                    <i data-lucide="user" class="w-8 h-8 text-custom-blue opacity-70"></i>
+                </div>
+                <div>
+                     <h2 id="greeting" class="text-sm font-semibold text-white">Selamat Siang,</h2>
+                     <h2 id="user-name-display" class="text-lg font-bold text-white -mt-1">Pengguna</h2>
+                </div>
+            </div>
+            <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+        </div>
+
+        <!-- 3. SLIDER IKLAN OTOMATIS -->
+        <div class="bg-gray-200 rounded-xl p-6 shadow-md overflow-hidden mb-6">
+            <div id="announcement-slider" class="flex w-full overflow-x-scroll snap-x snap-mandatory slider-wrapper rounded-lg"></div>
+            <div id="slider-dots" class="flex justify-center space-x-2 mt-4"></div>
+        </div>
+
+        <!-- 4. PROGRESS BAR KINERJA -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Progres Kinerja</h3>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <p class="text-sm font-medium text-gray-700">Progres Restribusi</p>
+                    <span id="retribusi-percentage" class="text-sm font-semibold text-gray-800">0%</span>
+                </div>
+                <div class="progress-container mb-4"><div id="retribusi-bar" class="progress-bar bg-custom-yellow" style="width: 0%;"></div></div>
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <p class="text-sm font-medium text-gray-700">Ketersediaan Stok Gudang</p>
+                    <span id="stok-percentage" class="text-sm font-semibold text-gray-800">0%</span></div>
+                <div class="progress-container mb-4"><div id="stok-bar" class="progress-bar bg-custom-red" style="width: 0%;"></div></div>
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <p class="text-sm font-medium text-gray-700">Progres Penjualan</p><span id="penjualan-percentage" class="text-sm font-semibold text-gray-800">0%</span></div>
+                <div class="progress-container mb-4"><div id="penjualan-bar" class="progress-bar bg-custom-blue" style="width: 0%;"></div></div>
+            </div>
+        </div>
+
+        <!-- AKSES CEPAT -->
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Akses Cepat</h3>
+        <div class="grid grid-cols-3 gap-4 mb-8">
+             <a href="#" onclick="alert('Fitur Scan Produk akan segera tersedia di aplikasi native.')" class="flex flex-col items-center p-2 text-center bg-white rounded-lg shadow-sm hover:shadow-md transition"><div class="p-3 bg-blue-100 rounded-full"><i data-lucide="scan-line" class="w-5 h-5 text-blue-600"></i></div><span class="text-xs mt-2 font-medium text-gray-600">Scan Produk</span></a>
+             <a href="apk_koperasi_stok.html" class="flex flex-col items-center p-2 text-center bg-white rounded-lg shadow-sm hover:shadow-md transition"><div class="p-3 bg-yellow-100 rounded-full"><i data-lucide="package-check" class="w-5 h-5 text-yellow-600"></i></div><span class="text-xs mt-2 font-medium text-gray-600">Cek Stok</span></a>
+             <a href="apk_progres.html" class="flex flex-col items-center p-2 text-center bg-white rounded-lg shadow-sm hover:shadow-md transition"><div class="p-3 bg-green-100 rounded-full"><i data-lucide="clipboard-list" class="w-5 h-5 text-green-600"></i></div><span class="text-xs mt-2 font-medium text-gray-600">Riwayat</span></a>
+        </div>
+
+        <!-- 5. MENU LAYANAN UTAMA (Telah Diperbarui) -->
+        <h3 class="text-lg font-bold text-gray-800 mb-4">MENU LAYANAN</h3>
+        <div class="grid grid-cols-4 gap-4">
+            <!-- Menus -->
+            <a href="apk_petani_info_koperasi.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #FEF3C7; --icon-fg-color: #FBBF24;"><i data-lucide="info"></i></div><span class="text-xs font-medium text-gray-700">Info Koperasi</span></a>
+            <a href="apk_petani_koperasi_stok.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #E0F2F1; --icon-fg-color: #14B8A6;"><i data-lucide="clipboard-list"></i></div><span class="text-xs font-medium text-gray-700">Koperasi Stok</span></a>
+            <a href="apk_laporan.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #DBEAFE; --icon-fg-color: #2563EB;"><i data-lucide="hand-coins"></i></div><span class="text-xs font-medium text-gray-700">KSP</span></a>
+            <a href="apk_petani_jadwal_tanam.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #D1FAE5; --icon-fg-color: #10B981;"><i data-lucide="calendar-plus"></i></div><span class="text-xs font-medium text-gray-700">Jadwal Tanam</span></a>
+            <a href="apk_petani_jadwal_panen.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #D1FAE5; --icon-fg-color: #10B981;"><i data-lucide="calendar-check"></i></div><span class="text-xs font-medium text-gray-700">Jadwal Panen</span></a>
+            <a href="apk_petani_lahan.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #E0E7FF; --icon-fg-color: #4F46E5;"><i data-lucide="scaling"></i></div><span class="text-xs font-medium text-gray-700">Luas Lahan</span></a>
+            <a href="apk_petani_penawaran.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #FFE4E6; --icon-fg-color: #F43F5E;"><i data-lucide="tag"></i></div><span class="text-xs font-medium text-gray-700">Buat Penawaran</span></a>
+            <a href="apk_petani_kebutuhan.html" class="text-center p-2 rounded-lg hover:bg-gray-100 transition"><div class="menu-icon-wrapper" style="--icon-bg-color: #FEF9C3; --icon-fg-color: #F59E0B;"><i data-lucide="shopping-basket"></i></div><span class="text-xs font-medium text-gray-700">Lihat Kebutuhan</span></a>
+        </div>
+
+    </main>
+
+    <!-- 6. FLOATING NAVBAR (NAVIGASI BAWAH) -->
+    <nav class="fixed bottom-4 left-0 right-0 max-w-sm mx-auto bg-custom-blue text-white p-3 shadow-2xl rounded-full z-40">
+        <div class="flex justify-around items-center">
+            <a href="apk_dashboard_petani.html" class="p-2 text-white/80 hover:text-white transition"><i data-lucide="home" class="w-6 h-6"></i></a>
+            <a href="tel:08123456789" class="p-4 bg-white text-custom-blue rounded-full -mt-8 shadow-2xl ring-4 ring-custom-blue hover:bg-gray-100 transition"><i data-lucide="phone" class="w-6 h-6"></i></a>
+            <a href="apk_petani_user.html" class="p-2 text-white/80 hover:text-white transition"><i data-lucide="user" class="w-6 h-6"></i></a>
+        </div>
+    </nav>
+
+    <!-- Modal Notifikasi Detail -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4 modal" onclick="closeNotificationModal()">
+         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 modal-content transform scale-95" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <h4 id="modal-title" class="font-bold text-lg text-gray-800">Detail Notifikasi</h4>
+                <button onclick="closeNotificationModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <p id="modal-detail" class="text-sm text-gray-600 mb-2"></p>
+            <p id="modal-date" class="text-xs text-gray-400"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.getElementById('main-content');
+            setTimeout(() => {
+                mainContent.classList.add('loaded');
+                lucide.createIcons();
+            }, 100);
+
+            // --- SINKRONISASI DATA PENGGUNA YANG LOGIN ---
+            const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+            if (loggedInUserEmail) {
+                const customers = JSON.parse(localStorage.getItem('gerbangPanganCustomers')) || [];
+                const currentUser = customers.find(c => c.email === loggedInUserEmail);
+                if (currentUser) {
+                    // Ambil nama depan untuk tampilan yang lebih ringkas
+                    const firstName = currentUser.name.split(' ')[0];
+                    document.getElementById('user-name-display').textContent = firstName;
+                } else {
+                    // Jika data pengguna tidak ditemukan, kembali ke login
+                    window.location.replace('apk_login.html');
+                }
+            } else {
+                // Jika tidak ada sesi login, kembali ke halaman login
+                window.location.replace('apk_login.html');
+            }
+
+
+            // --- SINKRONISASI FOTO PROFIL ---
+            const profilePicData = localStorage.getItem('profilePicture');
+            if (profilePicData) {
+                const container = document.getElementById('profile-picture-container');
+                container.innerHTML = `<img src="${profilePicData}" class="w-full h-full object-cover" alt="Foto Profil">`;
+            }
+
+            // --- SAPAAN BERDASARKAN WAKTU ---
+            const greetingElement = document.getElementById('greeting');
+            const hour = new Date().getHours();
+            let greetingText = "Selamat Datang,";
+            if (hour < 12) greetingText = "Selamat Pagi,";
+            else if (hour < 15) greetingText = "Selamat Siang,";
+            else if (hour < 18) greetingText = "Selamat Sore,";
+            else greetingText = "Selamat Malam,";
+            greetingElement.textContent = greetingText;
+
+            // --- LOGIKA NOTIFIKASI DINAMIS ---
+            const NOTIFICATION_KEY = 'appNotifications';
+            const HISTORY_KEY = 'transactionHistory';
+            const CUSTOMERS_KEY = 'gerbangPanganCustomers';
+            const REQUESTS_KEY = 'gerbangPanganProductRequests'; // Kunci baru
+
+            const notificationModule = (() => {
+                const button = document.getElementById('notification-button');
+                const dropdown = document.getElementById('notification-dropdown');
+                const list = document.getElementById('notification-list');
+                const badge = document.getElementById('notification-badge');
+                const markAllReadBtn = document.getElementById('mark-all-read');
+                const noNotificationsDiv = document.getElementById('no-notifications');
+                const modal = document.getElementById('notification-modal');
+                const modalContent = modal.querySelector('.modal-content');
+                
+                const getNotifications = () => JSON.parse(localStorage.getItem(NOTIFICATION_KEY)) || [];
+                const saveNotifications = (notifs) => localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notifs));
+
+                const render = () => {
+                    const notifications = getNotifications();
+                    list.innerHTML = '';
+                    const unreadCount = notifications.filter(n => !n.read).length;
+
+                    noNotificationsDiv.classList.toggle('hidden', notifications.length > 0);
+                    
+                    const sorted = [...notifications].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    sorted.forEach(notif => {
+                        const item = document.createElement('li');
+                        const isReadClass = notif.read ? 'hover:bg-gray-50' : 'bg-indigo-50/50 hover:bg-indigo-100';
+                        item.className = `p-3 flex items-start space-x-3 cursor-pointer transition ${isReadClass}`;
+                        item.innerHTML = `
+                            <div class="p-2 rounded-full flex-shrink-0"><i data-lucide="${notif.icon}" class="w-5 h-5 text-custom-blue"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-gray-900">${notif.title}</p>
+                                <p class="text-xs text-gray-600 truncate">${notif.detail}</p>
+                                <p class="text-[10px] text-gray-400 mt-1">${new Date(notif.date).toLocaleString('id-ID')} ${!notif.read ? '• <span class="text-custom-blue font-bold">Baru</span>' : ''}</p>
+                            </div>`;
+                        item.addEventListener('click', () => {
+                            let notifs = getNotifications();
+                            const clickedNotif = notifs.find(n => n.id === notif.id);
+                            if(clickedNotif) clickedNotif.read = true;
+                            saveNotifications(notifs);
+                            if (notif.type === 'shipped' || notif.type === 'completed') {
+                                window.location.href = 'apk_progres.html';
+                            } else {
+                                showNotificationModal(notif);
+                            }
+                        });
+                        list.appendChild(item);
+                    });
+
+                    badge.classList.toggle('hidden', unreadCount === 0);
+                    lucide.createIcons();
+                };
+
+                const showNotificationModal = (notif) => {
+                    document.getElementById('modal-title').textContent = notif.title;
+                    document.getElementById('modal-detail').textContent = notif.detail;
+                    document.getElementById('modal-date').textContent = notif.date;
+                    modal.classList.remove('hidden');
+                    requestAnimationFrame(() => modalContent.classList.remove('scale-95'));
+                };
+                
+                window.closeNotificationModal = () => {
+                     modalContent.classList.add('scale-95');
+                     modal.classList.add('opacity-0');
+                     setTimeout(() => modal.classList.add('hidden'), 300);
+                };
+                
+                button.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('dropdown-active'); });
+                markAllReadBtn.addEventListener('click', (e) => { e.stopPropagation(); let notifs = getNotifications(); notifs.forEach(n => n.read = true); saveNotifications(notifs); render(); });
+                document.addEventListener('click', (e) => { if (!dropdown.contains(e.target) && !button.contains(e.target)) dropdown.classList.remove('dropdown-active'); });
+
+                return { init: render, get: getNotifications, save: saveNotifications };
+            })();
+
+            // --- LOGIKA SLIDER IKLAN ---
+            const sliderModule = (() => {
+                const slider = document.getElementById('announcement-slider');
+                const dotsContainer = document.getElementById('slider-dots');
+                const DB_BANNERS_KEY = 'appBanners';
+                let currentIndex = 0;
+                let intervalId;
+
+                const renderBanners = () => {
+                    const banners = JSON.parse(localStorage.getItem(DB_BANNERS_KEY) || '[]');
+                    slider.innerHTML = '';
+                    dotsContainer.innerHTML = '';
+
+                    if (banners.length === 0) {
+                        slider.innerHTML = `<div class="flex-shrink-0 w-full text-center snap-center"><p class="font-medium text-gray-700">Selamat Datang di Gerbang Pangan</p><p class="text-sm text-gray-500 mt-1">Solusi pasokan agrikultur Anda.</p></div>`;
+                        return;
+                    }
+
+                    banners.forEach((banner, index) => {
+                        const slide = document.createElement('div');
+                        slide.className = 'flex-shrink-0 w-full snap-center';
+                        slide.innerHTML = `<img src="${banner.image}" alt="${banner.name}" class="w-full h-full object-cover">`;
+                        slider.appendChild(slide);
+
+                        const dot = document.createElement('span');
+                        dot.className = 'w-2 h-2 bg-gray-400 rounded-full transition-colors duration-300 cursor-pointer';
+                        dot.addEventListener('click', () => goToSlide(index));
+                        dotsContainer.appendChild(dot);
+                    });
+
+                    if (intervalId) clearInterval(intervalId);
+                    intervalId = setInterval(() => goToSlide((currentIndex + 1) % banners.length), 5000);
+                    goToSlide(0);
+                };
+
+                const goToSlide = (index) => {
+                    if (!slider.children.length) return;
+                    slider.scrollLeft = index * slider.offsetWidth;
+                    currentIndex = index;
+                    const dots = dotsContainer.children;
+                    Array.from(dots).forEach((dot, i) => dot.classList.toggle('bg-gray-600', i === currentIndex));
+                    Array.from(dots).forEach((dot, i) => dot.classList.toggle('bg-gray-400', i !== currentIndex));
+                };
+                return { init: renderBanners };
+            })();
+
+            // --- LOGIKA PROGRESS KINERJA DINAMIS ---
+            const updatePerformanceProgress = () => {
+                // 1. Progres Restribusi (Simpanan Wajib)
+                const customers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY) || '[]');
+                const totalSimpananWajib = customers.reduce((sum, c) => sum + (c.savings?.wajib || 0), 0);
+                const targetSimpananTahunan = 15000000; // Target Rp 15 Juta
+                const retribusiPercent = Math.min(100, (totalSimpananWajib / targetSimpananTahunan) * 100);
+                
+                document.getElementById('retribusi-percentage').textContent = `${retribusiPercent.toFixed(0)}%`;
+                document.getElementById('retribusi-bar').style.width = `${retribusiPercent}%`;
+
+                // 2. Ketersediaan Stok Gudang
+                const products = JSON.parse(localStorage.getItem('gerbangPanganProducts') || '[]');
+                if (products.length > 0) {
+                    const safeProducts = products.filter(p => p.stock > p.threshold).length;
+                    const stokPercent = (safeProducts / products.length) * 100;
+                    const stokBar = document.getElementById('stok-bar');
+
+                    document.getElementById('stok-percentage').textContent = `${stokPercent.toFixed(0)}%`;
+                    stokBar.style.width = `${stokPercent}%`;
+
+                    stokBar.classList.remove('bg-custom-blue', 'bg-custom-yellow', 'bg-custom-red');
+                    if (stokPercent > 75) {
+                        stokBar.classList.add('bg-custom-blue');
+                    } else if (stokPercent > 40) {
+                        stokBar.classList.add('bg-custom-yellow');
+                    } else {
+                        stokBar.classList.add('bg-custom-red');
+                    }
+                }
+
+                // 3. Progres Penjualan
+                const orders = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                const now = new Date();
+                const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                const totalPenjualanBulanIni = orders
+                    .filter(o => {
+                        const orderDate = new Date(o.date);
+                        return o.status === 'Selesai' && orderDate >= firstDayOfMonth && orderDate <= lastDayOfMonth;
+                    })
+                    .reduce((sum, o) => sum + o.totalPrice, 0);
+                
+                const targetPenjualanBulanan = 50000000; // Target Rp 50 Juta
+                const penjualanPercent = Math.min(100, (totalPenjualanBulanIni / targetPenjualanBulanan) * 100);
+
+                document.getElementById('penjualan-percentage').textContent = `${penjualanPercent.toFixed(0)}%`;
+                document.getElementById('penjualan-bar').style.width = `${penjualanPercent}%`;
+            };
+
+            // --- LOGIKA BADGE UNTUK BALASAN PERMINTAAN (BARU) ---
+            const checkNewReplies = () => {
+                const badge = document.getElementById('replies-badge');
+                const getRequests = () => JSON.parse(localStorage.getItem(REQUESTS_KEY)) || [];
+                const hasUnread = getRequests().some(r => r.reply && !r.userHasSeenReply);
+                badge.classList.toggle('hidden', !hasUnread);
+            };
+
+            // Jalankan semua modul
+            notificationModule.init();
+            checkNewReplies();
+            updatePerformanceProgress();
+            sliderModule.init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitoring Koperasi - Pemerintah Daerah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="admin_besar_pemda.css">
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <aside id="sidebar-nav" class="w-64 bg-gray-800 text-white flex flex-col flex-shrink-0 no-print">
+            <div class="p-6 border-b border-gray-700 flex items-center space-x-3">
+                <img src="logogpid.png" alt="Logo Gerbang Pangan" class="h-12 w-12 object-contain">
+                <div>
+                    <p class="text-xl font-bold">MONITORING</p>
+                    <p class="text-xs text-gray-400">super admin</p>
+                </div>
+            </div>
+            <nav class="mt-2 flex-grow">
+                <div class="px-6 py-2 nav-group" data-group="utama"><span
+                        class="text-xs font-semibold uppercase text-gray-400">Utama</span></div>
+                <a href="#dashboard"
+                    class="nav-link flex items-center justify-between py-2.5 px-6 text-white transition duration-200">
+                    <div class="flex items-center"><svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                            </path>
+                        </svg><span>Monitoring</span></div>
+                </a>
+                <a href="#manajemen"
+                    class="nav-link flex items-center justify-between py-2.5 px-6 hover:bg-gray-700 transition duration-200">
+                    <div class="flex items-center"><svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg><span>Data Koperasi</span></div>
+                    <span id="sidebar-koperasi-count"
+                        class="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                </a>
+                <a href="#bumdes"
+                    class="nav-link flex items-center justify-between py-2.5 px-6 hover:bg-gray-700 transition duration-200">
+                    <div class="flex items-center"><svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6">
+                            </path>
+                        </svg><span>Data BUMDes</span></div>
+                    <span id="sidebar-bumdes-count"
+                        class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                </a>
+                <a href="#perumda"
+                    class="nav-link flex items-center justify-between py-2.5 px-6 hover:bg-gray-700 transition duration-200">
+                    <div class="flex items-center"><svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                            </path>
+                        </svg><span>Data Perumda</span></div>
+                    <span id="sidebar-perumda-count"
+                        class="bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                </a>
+                <a href="#manajemen-user"
+                    class="nav-link flex items-center justify-between py-2.5 px-6 hover:bg-gray-700 transition duration-200">
+                    <div class="flex items-center"><svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197m0 0A5.995 5.995 0 0012 12a5.995 5.995 0 00-3-5.197M15 21a2.5 2.5 0 00-5 0m5 0a2.5 2.5 0 00-5 0m5 0a2.5 2.5 0 00-5 0m5 0a2.5 2.5 0 00-5 0">
+                            </path>
+                        </svg><span>Manajemen User</span></div>
+                </a>
+
+                <div class="px-6 py-4 nav-group" data-group="analisis-laporan"><span
+                        class="text-xs font-semibold uppercase text-gray-400">Analisis & Laporan</span></div>
+                <a href="#laporan"
+                    class="nav-link flex items-center py-2.5 px-6 hover:bg-gray-700 transition duration-200"><svg
+                        class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg><span>Laporan</span></a>
+                <a href="#analitik"
+                    class="nav-link flex items-center py-2.5 px-6 hover:bg-gray-700 transition duration-200"><svg
+                        class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg><span>Analitik</span></a>
+                <a href="#pengaturan"
+                    class="nav-link flex items-center py-2.5 px-6 hover:bg-gray-700 transition duration-200"><svg
+                        class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg><span>Pengaturan</span></a>
+            </nav>
+            <div class="mt-auto p-4">
+                <a href="#" id="logout-btn"
+                    class="flex items-center justify-center py-3 px-6 bg-red-500 bg-opacity-20 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition duration-200">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                    <span>Keluar</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-md p-4 flex justify-between items-center no-print">
+                <h1 id="header-title" class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+                <!-- Profile Dropdown -->
+                <div class="relative">
+                    <button id="profile-btn" class="flex items-center space-x-3">
+                        <span id="header-admin-name" class="text-gray-600 font-medium hidden sm:block">Super
+                            Admin</span>
+                        <img id="user-avatar" class="h-10 w-10 rounded-full object-cover"
+                            src="https://i.pravatar.cc/150?u=superadmin@pemda.go.id" alt="User Avatar">
+                    </button>
+                    <div id="profile-dropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl overflow-hidden hidden z-20 transition-all duration-200 ease-out transform opacity-0 scale-95">
+                        <a href="#pengaturan" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100">Profil &
+                            Pengaturan</a>
+                        <div class="border-t border-gray-100"></div>
+                        <a href="#" id="logout-btn-dropdown"
+                            class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50">Keluar</a>
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+
+                <div id="dashboard-content" class="page-content">
+                    <!-- Penambahan: Dropdown Fokus Monitoring -->
+                    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div id="dashboard-title-container">
+                            <h2 id="dashboard-view-title" class="text-2xl font-bold text-gray-800">Fokus: Koperasi</h2>
+                            <p class="text-sm text-gray-500">Data spesifik dari seluruh Koperasi.</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0">
+                            <label for="monitoring-focus-select"
+                                class="block text-sm font-medium text-gray-700 mb-1">Fokus Monitoring</label>
+                            <select id="monitoring-focus-select"
+                                class="w-full sm:w-64 p-2 border border-gray-300 rounded-md bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="koperasi" selected>Fokus: Koperasi</option>
+                                <option value="bumdes">Fokus: BUMDes</option>
+                                <option value="perumda">Fokus: Perumda</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <!-- Trigger for Filter Modal -->
+                    <div class="mb-6 flex justify-end">
+                        <button id="open-filter-modal-btn" class="flex items-center gap-2 px-6 py-2.5 bg-white text-gray-600 font-semibold rounded-lg shadow-md hover:bg-gray-50 transition border">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                            </svg>
+                            Filter Data
+                        </button>
+                    </div>
+
+                    <div id="dashboard-main-view">
+                        <!-- KPI Cards -->
+                        <!-- Baris 1: Metrik Utama -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Koperasi Aktif</p>
+                                    <p id="kpi-koperasi-aktif" class="text-xl font-bold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2 bg-blue-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6" />
+                                    </svg></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Nilai Transaksi</p>
+                                    <p id="kpi-total-transaksi" class="text-xl font-bold text-gray-800">Rp 0</p>
+                                </div>
+                                <div class="p-2 bg-emerald-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+                                    </svg></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Stok Gudang</p>
+                                    <p id="kpi-total-stok" class="text-xl font-bold text-gray-800">0 Ton</p>
+                                </div>
+                                <div class="p-2 bg-amber-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Anggota</p>
+                                    <p id="kpi-total-anggota" class="text-xl font-bold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2 bg-rose-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-rose-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.28-1.25-1.44-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.28-1.25 1.44-1.857M12 12a3 3 0 100-6 3 3 0 000 6z" />
+                                    </svg></div>
+                            </div>
+                        </div>
+                        <!-- Baris 2: Metrik Harian -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Terjual Hari Ini</p>
+                                    <p id="kpi-terjual-hari-ini" class="text-xl font-bold text-gray-800">Rp 0</p>
+                                </div>
+                                <div class="p-2 bg-lime-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-lime-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Pesanan Hari Ini</p>
+                                    <p id="kpi-pesanan-hari-ini" class="text-xl font-bold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2 bg-cyan-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-cyan-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                    </svg></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Produk Paling Laris (Hari Ini)</p>
+                                    <p id="kpi-produk-laris" class="text-lg font-bold text-gray-800 truncate">-</p>
+                                </div>
+                                <div class="p-2 bg-purple-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg></div>
+                            </div>
+                        </div>
+
+                        <!-- Baris 3: Metrik Harga Beli (Akan disembunyikan/ditampilkan secara dinamis) -->
+                        <div id="kpi-harga-beli-row" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div onclick="openPurchaseDetailModal('petani')"
+                                class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all">
+                                <div>
+                                    <p class="text-sm text-gray-500">Harga Rata-rata Beli (Petani)</p>
+                                    <p id="kpi-harga-petani" class="text-xl font-bold text-gray-800">Rp 0</p>
+                                    <p class="text-xs text-gray-400">per Kg</p>
+                                </div>
+                                <div class="p-2 bg-teal-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg></div>
+                            </div>
+                            <div id="kpi-harga-bumdes-card" onclick="openPurchaseDetailModal('bumdes')"
+                                class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all">
+                                <div>
+                                    <p class="text-sm text-gray-500">Harga Rata-rata Beli (BUMDes)</p>
+                                    <p id="kpi-harga-bumdes" class="text-xl font-bold text-gray-800">Rp 0</p>
+                                    <p class="text-xs text-gray-400">per Kg</p>
+                                </div>
+                                <div class="p-2 bg-indigo-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6" />
+                                    </svg></div>
+                            </div>
+                        </div>
+
+                        <!-- Tinjauan Kategori per Koperasi -->
+                        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Tinjauan Kategori Produk (berdasarkan
+                                filter)</h3>
+                            <div id="pemda-category-summary-grid"
+                                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                <!-- Kartu kategori akan di-generate oleh JavaScript -->
+                            </div>
+                        </div>
+                        <!-- Chart -->
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                                <h3 id="dashboard-chart-title" class="text-lg font-semibold text-gray-800 mb-4">Grafik
+                                    Harga Beli vs Jual (4 Bulan Terakhir)</h3>
+                                <div class="h-80 rounded-md"><canvas id="dashboardChart"></canvas></div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Komposisi Nilai Stok per Kategori
+                                    </h3>
+                                </div>
+                                <div class="h-80 rounded-md flex items-center justify-center"><canvas
+                                        id="commodityPieChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="manajemen-content" class="page-content hidden">
+                    <div class="mb-6 border-b border-gray-200">
+                        <nav id="koperasi-tabs" class="flex -mb-px space-x-6" aria-label="Tabs">
+                            <button data-tab="data-koperasi"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Data
+                                Koperasi</button>
+                            <button data-tab="ringkasan-pasokan"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Ringkasan
+                                Pasokan</button>
+                            <button data-tab="stok-pasar"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Rincian Stok
+                                Market</button>
+                            <button data-tab="riwayat-penjualan"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Riwayat
+                                Penjualan</button>
+                        </nav>
+                    </div>
+
+                    <div id="tab-data-koperasi" class="tab-content-koperasi">
+                        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Data Koperasi</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div><label for="filterManajemenProvinsi"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Provinsi</label><select
+                                        id="filterManajemenProvinsi"
+                                        class="w-full p-2 border border-gray-300 rounded-md bg-white">
+                                        <option value="">Semua Provinsi</option>
+                                        <option selected>SULAWESI TENGAH</option>
+                                    </select></div>
+                                <div><label for="filterManajemenKabupaten"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Kabupaten</label><select
+                                        id="filterManajemenKabupaten"
+                                        class="w-full p-2 border border-gray-300 rounded-md bg-white">
+                                        <option value="">Semua Kabupaten</option>
+                                        <option selected>PARIGI MOUTONG</option>
+                                    </select></div>
+                                <div><label for="filterManajemenKecamatan"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Kecamatan</label><select
+                                        id="filterManajemenKecamatan"
+                                        class="w-full p-2 border border-gray-300 rounded-md bg-white">
+                                        <option value="">Semua Kecamatan</option>
+                                    </select></div>
+                                <div><label for="filterManajemenDesa"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Desa</label><select
+                                        id="filterManajemenDesa"
+                                        class="w-full p-2 border border-gray-300 rounded-md bg-white">
+                                        <option value="">Semua Desa</option>
+                                    </select></div>
+                                <div class="self-end"><input type="text" id="searchInput"
+                                        class="w-full p-2 border border-gray-300 rounded-md"
+                                        placeholder="Cari nama koperasi..."></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Koperasi Terdaftar</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Nama Koperasi</th>
+                                            <th class="p-3">Admin PIC</th>
+                                            <th class="p-3">Lokasi</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="koperasi-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-ringkasan-pasokan" class="tab-content-koperasi hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Ringkasan Total Pasokan per Kategori
+                            </h3>
+                            <div id="summary-by-category" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-stok-pasar" class="tab-content-koperasi hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Rincian Stok Market</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                <div><label for="filter-stok-kategori"
+                                        class="text-sm font-medium">Kategori</label><select id="filter-stok-kategori"
+                                        class="w-full p-2 mt-1 border rounded-md bg-white">
+                                        <option value="">Semua Kategori</option>
+                                    </select></div>
+                                <div><label for="filter-stok-komoditas"
+                                        class="text-sm font-medium">Komoditas</label><select id="filter-stok-komoditas"
+                                        class="w-full p-2 mt-1 border rounded-md bg-white">
+                                        <option value="">Semua Komoditas</option>
+                                    </select></div>
+                                <div><label for="filter-stok-wilayah"
+                                        class="text-sm font-medium">Kabupaten</label><select id="filter-stok-wilayah"
+                                        class="w-full p-2 mt-1 border rounded-md bg-white">
+                                        <option value="">Semua Wilayah</option>
+                                    </select></div>
+                                <div class="self-end"><input type="text" id="search-stok-koperasi"
+                                        class="w-full p-2 border border-gray-300 rounded-md"
+                                        placeholder="Cari nama koperasi..."></div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Komoditas</th>
+                                            <th class="p-3">Kategori</th>
+                                            <th class="p-3">Stok</th>
+                                            <th class="p-3">Koperasi Asal</th>
+                                            <th class="p-3">Lokasi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stok-pasar-table-body" class="divide-y divide-gray-200">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-riwayat-penjualan" class="tab-content-koperasi hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Riwayat Penjualan Komoditas</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                <div><label class="text-sm font-medium">Tanggal Mulai</label><input type="date"
+                                        class="w-full p-2 mt-1 border rounded-md"></div>
+                                <div><label class="text-sm font-medium">Tanggal Akhir</label><input type="date"
+                                        class="w-full p-2 mt-1 border rounded-md"></div>
+                                <div><label class="text-sm font-medium">Komoditas</label><select
+                                        class="w-full p-2 mt-1 border rounded-md bg-white">
+                                        <option>Semua</option>
+                                        <option>Biji Kopi Robusta</option>
+                                        <option>Ikan Tuna Segar</option>
+                                    </select></div>
+                                <div class="self-end"><button
+                                        class="w-full px-4 py-2 bg-blue-600 text-white rounded-md">Filter</button></div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">ID Transaksi</th>
+                                            <th class="p-3">Tanggal</th>
+                                            <th class="p-3">Produk</th>
+                                            <th class="p-3">Jumlah</th>
+                                            <th class="p-3">Total Penjualan</th>
+                                            <th class="p-3">Pembeli</th>
+                                            <th class="p-3">Asal Koperasi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riwayat-penjualan-table-body" class="divide-y divide-gray-200">
+                                        <!-- Data diisi oleh JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="bumdes-content" class="page-content hidden">
+                    <div class="mb-6 border-b border-gray-200">
+                        <nav id="bumdes-tabs" class="flex -mb-px space-x-6" aria-label="Tabs"><button
+                                data-tab="ringkasan-bumdes"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Ringkasan</button><button
+                                data-tab="produksi-bumdes"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Monitoring
+                                Produksi</button><button data-tab="distribusi-bumdes"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Distribusi &
+                                Penjualan</button><button data-tab="keuangan-bumdes"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Laporan
+                                Keuangan</button></nav>
+                    </div>
+                    <div id="tab-ringkasan-bumdes" class="tab-content-bumdes space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Total Anggaran Dikelola</h3>
+                                <p id="bumdes-total-anggaran" class="text-3xl font-bold text-gray-800 mt-2">Rp 0</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Pembelian Bahan Baku</h3>
+                                <p id="bumdes-pembelian-bahan-baku" class="text-3xl font-bold text-gray-800 mt-2">Rp 0
+                                </p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Nilai Produk Jadi</h3>
+                                <p id="bumdes-nilai-produk" class="text-3xl font-bold text-gray-800 mt-2">Rp 0</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Penjualan ke Koperasi</h3>
+                                <p id="bumdes-penjualan-koperasi" class="text-3xl font-bold text-gray-800 mt-2">Rp 0</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Data BUMDes Terdaftar</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Nama BUMDes</th>
+                                            <th class="p-3">Admin PIC</th>
+                                            <th class="p-3">Lokasi</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bumdes-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Aliran Dana BUMDes (Agregat)</h3>
+                                <div class="h-80"><canvas id="bumdesAliranDanaChart"></canvas></div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Komposisi Pembelian Bahan Baku
+                                    (Agregat)</h3>
+                                <div class="h-80"><canvas id="bumdesBahanBakuChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-produksi-bumdes" class="tab-content-bumdes hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Log Proses Produksi (Hulu ke Hilir)
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">ID</th>
+                                            <th class="p-3">Tanggal</th>
+                                            <th class="p-3">BUMDes</th>
+                                            <th class="p-3">Bahan Baku Dibeli</th>
+                                            <th class="p-3">Biaya</th>
+                                            <th class="p-3">Produk Dihasilkan</th>
+                                            <th class="p-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bumdes-produksi-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-distribusi-bumdes" class="tab-content-bumdes hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Log Penjualan Produk ke Koperasi</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">ID</th>
+                                            <th class="p-3">Tanggal</th>
+                                            <th class="p-3">BUMDes Asal</th>
+                                            <th class="p-3">Produk Terjual</th>
+                                            <th class="p-3">Volume</th>
+                                            <th class="p-3">Koperasi Tujuan</th>
+                                            <th class="p-3">Nilai Penjualan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bumdes-distribusi-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-keuangan-bumdes" class="tab-content-bumdes hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Laporan Arus Kas BUMDes (Agregat)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Deskripsi</th>
+                                            <th class="p-3">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="perumda-content" class="page-content hidden">
+                    <div class="mb-6 border-b border-gray-200">
+                        <nav id="perumda-tabs" class="flex -mb-px space-x-6" aria-label="Tabs"><button
+                                data-tab="ringkasan-perumda"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Ringkasan</button><button
+                                data-tab="mitra-perumda"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Mitra
+                                Perusahaan</button><button data-tab="distribusi-perumda"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Monitoring
+                                Distribusi</button><button data-tab="keuangan-perumda"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Laporan
+                                Keuangan</button></nav>
+                    </div>
+                    <div id="tab-ringkasan-perumda" class="tab-content-perumda space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Jumlah Perusahaan Mitra</h3>
+                                <p class="text-3xl font-bold text-gray-800 mt-2">0</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Distribusi Bulan Ini</h3>
+                                <p class="text-3xl font-bold text-gray-800 mt-2">0</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Volume Komoditas</h3>
+                                <p class="text-3xl font-bold text-gray-800 mt-2">0 Ton</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Pendapatan</h3>
+                                <p class="text-3xl font-bold text-gray-800 mt-2">Rp 0</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Perumda Terdaftar</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Nama Perumda</th>
+                                            <th class="p-3">Admin PIC</th>
+                                            <th class="p-3">Lokasi</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="perumda-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Pasokan Komoditas Teratas (Oktober
+                                2025)</h3>
+                            <div class="h-80"><canvas id="perumdaPasokanChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div id="tab-mitra-perumda" class="tab-content-perumda hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Mitra Perusahaan</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Nama Perusahaan</th>
+                                            <th class="p-3">Kontak PIC</th>
+                                            <th class="p-3">Sektor Industri</th>
+                                            <th class="p-3">Lokasi</th>
+                                            <th class="p-3">Tgl. Bergabung</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-distribusi-perumda" class="tab-content-perumda hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Laporan Distribusi & Pasokan</h3>
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-md">
+                                <div><label class="text-sm font-medium">Rentang Waktu</label><input type="date"
+                                        class="w-full p-2 mt-1 border rounded-md"></div>
+                                <div><label class="text-sm font-medium">Komoditas</label><select
+                                        class="w-full p-2 mt-1 border rounded-md bg-white">
+                                        <option>Semua Komoditas</option>
+                                        <option>Kakao</option>
+                                        <option>Kopi</option>
+                                        <option>Cengkeh</option>
+                                    </select></div>
+                                <div><label class="text-sm font-medium">Perusahaan</label><select
+                                        class="w-full p-2 mt-1 border rounded-md bg-white">
+                                        <option>Semua Perusahaan</option>
+                                        <option>PT. Coklat Sejahtera</option>
+                                    </select></div>
+                                <div class="self-end"><button
+                                        class="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700">Terapkan
+                                        Filter</button></div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">ID</th>
+                                            <th class="p-3">Tanggal</th>
+                                            <th class="p-3">Perusahaan Tujuan</th>
+                                            <th class="p-3">Koperasi Asal</th>
+                                            <th class="p-3">Komoditas</th>
+                                            <th class="p-3">Volume</th>
+                                            <th class="p-3">Nilai</th>
+                                            <th class="p-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-keuangan-perumda" class="tab-content-perumda hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Ringkasan Keuangan</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="p-3">Periode</th>
+                                                <th class="p-3">Pendapatan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pendapatan Bulanan (6 Bulan
+                                    Terakhir)</h3>
+                                <div class="h-80"><canvas id="perumdaPendapatanChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="manajemen-user-content" class="page-content hidden">
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                                <h3 class="text-lg font-semibold text-gray-800">User Internal (Pemda)</h3>
+                                <button id="add-internal-user-btn"
+                                    class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 flex items-center whitespace-nowrap"><svg
+                                        class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg><span>Tambah User Internal</span></button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Nama / Username</th>
+                                            <th class="p-3">Role</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="internal-user-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                                <h3 class="text-lg font-semibold text-gray-800">User Eksternal (Frontend)</h3>
+                                <button id="add-external-user-btn"
+                                    class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 flex items-center whitespace-nowrap"><svg
+                                        class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg><span>Tambah User Eksternal</span></button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3">Nama / Username</th>
+                                            <th class="p-3">Role</th>
+                                            <th class="p-3">Entitas Terkait</th>
+                                            <th class="p-3">Lokasi</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="external-user-table-body" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="laporan-content" class="page-content hidden">
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-xl font-bold text-gray-800">Pusat Laporan</h2>
+                            <p class="text-gray-600 mt-1">Pilih jenis laporan yang ingin Anda buat, tentukan periode,
+                                dan unduh hasilnya.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">1. Pilih Jenis Laporan</h3>
+                            <div id="report-type-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="report-card border-2 border-gray-200 p-4 rounded-lg hover:shadow-lg cursor-pointer transition-all"
+                                    data-report="koperasi">
+                                    <h4 class="font-bold text-gray-800">Laporan Penjualan Koperasi</h4>
+                                    <p class="text-sm text-gray-500 mt-1">Rangkuman transaksi penjualan komoditas dari
+                                        semua koperasi.</p>
+                                </div>
+                                <div class="report-card border-2 border-gray-200 p-4 rounded-lg hover:shadow-lg cursor-pointer transition-all"
+                                    data-report="bumdes">
+                                    <h4 class="font-bold text-gray-800">Laporan Keuangan BUMDes</h4>
+                                    <p class="text-sm text-gray-500 mt-1">Arus kas masuk (penjualan) dan keluar
+                                        (pembelian bahan baku).</p>
+                                </div>
+                                <div class="report-card border-2 border-gray-200 p-4 rounded-lg hover:shadow-lg cursor-pointer transition-all"
+                                    data-report="perumda">
+                                    <h4 class="font-bold text-gray-800">Laporan Distribusi Perumda</h4>
+                                    <p class="text-sm text-gray-500 mt-1">Aktivitas distribusi pasokan dari Perumda ke
+                                        perusahaan mitra.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="report-filters-section" class="bg-white p-6 rounded-lg shadow-md hidden">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">2. Atur Filter dan Periode</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div><label for="report-start-date"
+                                        class="block text-sm font-medium text-gray-700">Tanggal Mulai</label><input
+                                        type="date" id="report-start-date"
+                                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
+                                <div><label for="report-end-date"
+                                        class="block text-sm font-medium text-gray-700">Tanggal Akhir</label><input
+                                        type="date" id="report-end-date"
+                                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
+                                <div class="self-end"><button id="generate-report-btn"
+                                        class="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700">Generate
+                                        Laporan</button></div>
+                            </div>
+                        </div>
+                        <div id="report-preview-section" class="bg-white p-6 rounded-lg shadow-md hidden">
+                            <div id="report-preview-container">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div id="report-header-info">
+                                        <h2 id="report-title" class="text-2xl font-bold text-gray-900"></h2>
+                                        <p id="report-period" class="text-gray-600"></p>
+                                    </div>
+                                    <div id="report-actions" class="flex space-x-2"><button id="print-report-btn"
+                                            class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm">Cetak</button><button
+                                            id="download-pdf-btn"
+                                            class="px-4 py-2 bg-red-600 text-white rounded-md text-sm">Unduh
+                                            PDF</button></div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table id="report-table" class="w-full text-sm text-left text-gray-500">
+                                        <thead id="report-table-head"
+                                            class="text-xs text-gray-700 uppercase bg-gray-50"></thead>
+                                        <tbody id="report-table-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tampilan Dasbor BUMDes (hidden by default) -->
+                <div id="bumdes-dashboard-view" class="page-content hidden">
+                    <!-- KPI Cards for BUMDes -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total BUMDes Aktif</p>
+                                <p id="kpi-bumdes-aktif" class="text-xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="p-2 bg-green-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6" />
+                                </svg></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Penjualan ke Koperasi</p>
+                                <p id="kpi-bumdes-penjualan" class="text-xl font-bold text-gray-800">Rp 0</p>
+                            </div>
+                            <div class="p-2 bg-emerald-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+                                </svg></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Volume Transaksi</p>
+                                <p id="kpi-bumdes-volume" class="text-xl font-bold text-gray-800">0 Ton</p>
+                            </div>
+                            <div class="p-2 bg-amber-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Komoditas Terlaris</p>
+                                <p id="kpi-bumdes-komoditas-laris" class="text-lg font-bold text-gray-800 truncate">-
+                                </p>
+                            </div>
+                            <div class="p-2 bg-purple-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg></div>
+                        </div>
+                    </div>
+                    <!-- Chart and Table for BUMDes -->
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                        <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Nilai Penjualan Bulanan (ke
+                                Koperasi)</h3>
+                            <div class="h-80 rounded-md"><canvas id="bumdesSalesChart"></canvas></div>
+                        </div>
+                        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Peringkat BUMDes (Nilai Penjualan)</h3>
+                            <div class="overflow-x-auto max-h-80">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-gray-50 sticky top-0">
+                                        <tr>
+                                            <th class="p-2">BUMDes</th>
+                                            <th class="p-2 text-right">Total Penjualan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bumdes-ranking-table" class="divide-y"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tampilan Dasbor Perumda (hidden by default) -->
+                <div id="perumda-dashboard-view" class="page-content hidden">
+                    <!-- KPI Cards for Perumda -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Perumda Aktif</p>
+                                <p id="kpi-perumda-aktif" class="text-xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="p-2 bg-purple-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Pesanan Diterima</p>
+                                <p id="kpi-perumda-pesanan" class="text-xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="p-2 bg-cyan-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                </svg></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Nilai Pesanan</p>
+                                <p id="kpi-perumda-nilai" class="text-xl font-bold text-gray-800">Rp 0</p>
+                            </div>
+                            <div class="p-2 bg-emerald-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+                                </svg></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Jumlah Mitra Perusahaan</p>
+                                <p id="kpi-perumda-mitra" class="text-xl font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="p-2 bg-blue-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.28-1.25-1.44-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.28-1.25 1.44-1.857M12 12a3 3 0 100-6 3 3 0 000 6z" />
+                                </svg></div>
+                        </div>
+                    </div>
+                    <!-- Chart and Table for Perumda -->
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                        <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Nilai Pesanan Bulanan</h3>
+                            <div class="h-80 rounded-md"><canvas id="perumdaOrdersChart"></canvas></div>
+                        </div>
+                        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Daftar Pesanan Terbaru</h3>
+                            <div class="overflow-x-auto max-h-80">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-gray-50 sticky top-0">
+                                        <tr>
+                                            <th class="p-2">ID</th>
+                                            <th class="p-2">Koperasi</th>
+                                            <th class="p-2 text-right">Nilai</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="perumda-orders-table" class="divide-y"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="analitik-content" class="page-content hidden">
+                    <div class="mb-6 border-b border-gray-200">
+                        <nav id="analitik-tabs" class="flex -mb-px space-x-6" aria-label="Tabs">
+                            <button data-tab="kinerja-umum"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Kinerja
+                                Umum</button>
+                            <button data-tab="analitik-cerdas"
+                                class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Analitik
+                                Cerdas</button>
+                        </nav>
+                    </div>
+                    <div id="tab-kinerja-umum" class="tab-content-analitik">
+                        <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Analitik Kinerja Keseluruhan</h3>
+                            <div class="flex items-center space-x-4"><label for="analitik-periode"
+                                    class="text-sm font-medium text-gray-700">Periode:</label><select
+                                    id="analitik-periode"
+                                    class="p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="6m">6 Bulan Terakhir</option>
+                                    <option value="ytd">Tahun Ini (YTD)</option>
+                                    <option value="last_year">Tahun Lalu</option>
+                                </select></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Total Nilai Transaksi</h3>
+                                <p id="kinerja-total-nilai" class="text-3xl font-bold text-gray-800 mt-2">...</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Total Volume Komoditas</h3>
+                                <p id="kinerja-total-volume" class="text-3xl font-bold text-gray-800 mt-2">...</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-sm font-medium text-gray-500">Jumlah Transaksi</h3>
+                                <p id="kinerja-jumlah-transaksi" class="text-3xl font-bold text-gray-800 mt-2">...</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                            <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Pendapatan Bulanan</h3>
+                                <div class="h-80"><canvas id="kinerjaChart"></canvas></div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Kontribusi Pendapatan per Entitas
+                                </h3>
+                                <div class="h-80"><canvas id="kontribusiChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-analitik-cerdas" class="tab-content-analitik hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                                <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                                    <h3 class="text-xl font-semibold text-gray-800">Prediksi Stok Komoditas</h3>
+                                    <div class="flex items-center space-x-2"><label for="prediksi-komoditas-filter"
+                                            class="text-sm font-medium">Komoditas:</label><select
+                                            id="prediksi-komoditas-filter"
+                                            class="p-2 border border-gray-300 rounded-md bg-white text-sm">
+                                            <option>Biji Kopi Robusta</option>
+                                            <option>Ikan Tuna Segar</option>
+                                            <option>Beras Organik</option>
+                                        </select></div>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Berdasarkan data stok historis, sistem
+                                    memproyeksikan tren stok untuk 30 hari ke depan untuk membantu perencanaan
+                                    pengadaan.</p>
+                                <div class="h-80"><canvas id="prediksiStokChart"></canvas></div>
+                            </div>
+                            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Pusat Peringatan Anomali</h3>
+                                <div class="space-y-4">
+                                    <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
+                                        <p class="font-bold text-red-800">Penurunan Penjualan Drastis</p>
+                                        <p class="text-sm text-red-700 mt-1"><strong>Koperasi Harapan Bangsa</strong>
+                                            mengalami penurunan penjualan sebesar <strong>55%</strong> pada minggu
+                                            terakhir.</p>
+                                        <div class="mt-3 text-right"><button
+                                                class="text-sm font-medium text-blue-600 hover:text-blue-800">Lihat
+                                                Detail</button></div>
+                                    </div>
+                                    <div class="border-l-4 border-yellow-500 bg-yellow-50 p-4 rounded-r-lg">
+                                        <p class="font-bold text-yellow-800">Potensi Masalah Logistik</p>
+                                        <p class="text-sm text-yellow-700 mt-1">Distribusi ke <strong>PT. Coklat
+                                                Sejahtera</strong> dari <strong>Kop. Tani Makmur</strong> terlambat 3
+                                            hari dari jadwal.</p>
+                                        <div class="mt-3 text-right"><button
+                                                class="text-sm font-medium text-blue-600 hover:text-blue-800">Lihat
+                                                Detail</button></div>
+                                    </div>
+                                    <p class="text-center text-sm text-gray-500 pt-4">Tidak ada peringatan lain.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="pengaturan-content" class="page-content hidden">
+                    <div class="space-y-8 max-w-4xl mx-auto">
+                        <!-- Profil Pengguna -->
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-gray-800 border-b pb-4 mb-6">Profil Pengguna</h3>
+                            <div class="space-y-5">
+                                <div><label class="text-sm font-medium text-gray-500">Nama Pengguna</label>
+                                    <p id="profile-name" class="text-lg text-gray-800 font-medium">...</p>
+                                </div>
+                                <div><label class="text-sm font-medium text-gray-500">Email / Username</label>
+                                    <p id="profile-email" class="text-lg text-gray-800 font-medium">...</p>
+                                </div>
+                                <div><label class="text-sm font-medium text-gray-500">Peran (Role)</label>
+                                    <p id="profile-role" class="text-lg text-gray-800 font-medium capitalize">...</p>
+                                </div>
+                                <div class="pt-4"><button id="open-password-modal-btn"
+                                        class="px-5 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-colors">Ubah
+                                        Password</button></div>
+                            </div>
+                        </div>
+
+                        <!-- Pengaturan Tampilan -->
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-gray-800 border-b pb-4 mb-6">Tampilan</h3>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-lg font-medium text-gray-800">Mode Gelap</p>
+                                    <p class="text-sm text-gray-500">Aktifkan untuk mengurangi ketegangan mata.</p>
+                                </div>
+                                <button id="dark-mode-toggle"
+                                    class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors bg-gray-200"><span
+                                        class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform"></span></button>
+                            </div>
+                        </div>
+
+                        <!-- Tentang Aplikasi -->
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-gray-800 border-b pb-4 mb-6">Tentang Aplikasi</h3>
+                            <p class="text-gray-800">Versi Aplikasi: <span class="font-semibold">1.0.0</span></p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Ubah Password -->
+    <div id="change-password-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 no-print">
+        <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <p class="text-2xl font-bold">Ubah Password</p><button id="close-password-modal-btn"
+                    class="cursor-pointer z-50 p-2 -mr-2"><svg class="w-6 h-6" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg></button>
+            </div>
+            <form id="change-password-form" class="mt-4">
+                <div class="space-y-4">
+                    <div><label for="old-password" class="block text-sm font-medium text-gray-700">Password
+                            Lama</label><input type="password" id="old-password" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="new-password" class="block text-sm font-medium text-gray-700">Password
+                            Baru</label><input type="password" id="new-password" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Konfirmasi
+                            Password Baru</label><input type="password" id="confirm-new-password" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <p id="password-error-msg" class="text-red-500 text-xs hidden"></p>
+                </div>
+                <div class="flex items-center justify-end pt-6 space-x-4 border-t mt-6"><button
+                        id="cancel-password-change-btn" type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Batal</button><button
+                        type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan
+                        Password</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="harga-beli-detail-modal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden no-print">
+        <div id="pembelian-modal-content"
+            class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+            <div
+                class="flex justify-between items-center p-5 border-b sticky top-0 bg-white rounded-t-2xl no-print-in-modal">
+                <h2 class="text-xl font-bold text-gray-800">Detail Pembelian</h2>
+                <button onclick="tutupModal()"
+                    class="text-gray-400 hover:text-gray-700 text-3xl font-light">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <section class="mb-6 space-y-4 no-print-in-modal">
+                    <div id="modal-active-filters" class="text-sm p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2"><label for="modal-komoditi"
+                                class="text-sm font-medium text-gray-600">Filter Komoditi</label><select
+                                id="modal-komoditi"
+                                class="mt-1 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-3">
+                                <option>BERAS</option>
+                                <option>TELUR AYAM</option>
+                            </select></div>
+                        <div class="self-end"><button
+                                class="w-full bg-indigo-600 text-white font-semibold p-3 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">Terapkan</button>
+                        </div>
+                    </div>
+                </section>
+                <div id="modal-table-content" class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-indigo-600 text-white uppercase sticky top-0">
+                            <tr>
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Produk</th>
+                                <th class="p-3">Pemasok</th>
+                                <th class="p-3 text-right">Harga / Kg</th>
+                                <th class="p-3 text-right font-semibold">Total Pembelian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="harga-beli-detail-table-body" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="p-5 border-t flex justify-end sticky bottom-0 bg-white rounded-b-2xl no-print-in-modal">
+                <button onclick="cetakModal()"
+                    class="bg-gray-200 text-gray-800 font-semibold p-3 rounded-lg hover:bg-gray-300 transition-colors border border-gray-300 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm-6 6h6v4H7v-4z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <span>Cetak Detail</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="koperasi-detail-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 no-print">
+        <div class="relative mx-auto border w-full max-w-3xl shadow-lg rounded-xl bg-white max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b flex-shrink-0">
+                <h3 id="koperasi-detail-title" class="text-2xl font-bold">Detail Koperasi</h3>
+                <button id="close-koperasi-detail-btn" class="cursor-pointer z-50 p-2 -mr-2"><svg class="w-6 h-6"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg></button>
+            </div>
+            <div class="p-5 overflow-y-auto">
+                <!-- Data Catatan Ringkas Koperasi -->
+                <div class="space-y-4 text-sm">
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                        <!-- Informasi Umum -->
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Admin PIC</dt>
+                            <dd id="detail-admin-pic" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <dt class="font-medium text-gray-500">Lokasi</dt>
+                            <dd id="detail-lokasi" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+
+                        <!-- Metrik Utama (sesuai KPI Dasbor) -->
+                        <div class="sm:col-span-2 lg:col-span-3 border-t pt-4 mt-2"></div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Total Nilai Transaksi</dt>
+                            <dd id="detail-nilai-transaksi" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Total Stok Gudang</dt>
+                            <dd id="detail-stok" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Total Volume Terjual</dt>
+                            <dd id="detail-volume-terjual" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+
+                        <!-- Metrik Harian (sesuai KPI Dasbor) -->
+                        <div class="sm:col-span-2 lg:col-span-3 border-t pt-4 mt-2"></div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Terjual Hari Ini</dt>
+                            <dd id="detail-terjual-hari-ini" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Pesanan Hari Ini</dt>
+                            <dd id="detail-pesanan-hari-ini" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Total Anggota</dt>
+                            <dd id="detail-anggota" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+
+                        <!-- Metrik Pembelian (Tambahan Baru) -->
+                        <div class="sm:col-span-2 lg:col-span-3 border-t pt-4 mt-2"></div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Total Nilai Pembelian</dt>
+                            <dd id="detail-nilai-pembelian" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Avg. Beli (Petani)</dt>
+                            <dd id="detail-avg-petani" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="font-medium text-gray-500">Avg. Beli (BUMDes)</dt>
+                            <dd id="detail-avg-bumdes" class="mt-1 text-base font-semibold text-gray-900">-</dd>
+                        </div>
+
+                        <!-- Rangkuman Stok per Kategori -->
+                        <div class="sm:col-span-2 lg:col-span-3 border-t pt-4 mt-2"></div>
+                        <div class="sm:col-span-2 lg:col-span-3">
+                            <dt class="font-medium text-gray-500 mb-2">Rincian Stok per Kategori</dt>
+                            <dd id="detail-stok-kategori" class="mt-1 font-normal text-gray-900 space-y-3">-</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-internal-user-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 no-print">
+        <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <p class="text-2xl font-bold">Tambah User Internal</p><button id="close-internal-user-modal-btn"
+                    class="cursor-pointer z-50 p-2 -mr-2"><svg class="w-6 h-6" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg></button>
+            </div>
+            <form id="add-internal-user-form" class="mt-4">
+                <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                    <div><label for="internal-adminName" class="block text-sm font-medium text-gray-700">Nama
+                            Lengkap</label><input type="text" id="internal-adminName" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="internal-adminUsername" class="block text-sm font-medium text-gray-700">Username /
+                            Email</label><input type="email" id="internal-adminUsername" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="internal-adminPassword"
+                            class="block text-sm font-medium text-gray-700">Password</label><input type="password"
+                            id="internal-adminPassword" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="internal-adminRole"
+                            class="block text-sm font-medium text-gray-700">Role</label><select id="internal-adminRole"
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                            <option value="User Monitoring">User Monitoring</option>
+                            <option value="Super Admin">Super Admin</option>
+                        </select></div>
+                    <div class="access-container pt-4 border-t"><label
+                            class="block text-sm font-medium text-gray-700 mb-2">Hak Akses Menu</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center"><input id="internal-access-analitik-cerdas" type="checkbox"
+                                    data-access="analitik-cerdas"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"><label
+                                    for="internal-access-analitik-cerdas" class="ml-2 text-sm text-gray-700">Analitik
+                                    Cerdas</label></div>
+                            <div class="flex items-center"><input id="internal-access-pengaturan" type="checkbox"
+                                    data-access="pengaturan"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"><label
+                                    for="internal-access-pengaturan"
+                                    class="ml-2 text-sm text-gray-700">Pengaturan</label></div>
+                        </div>
+                    </div>
+                    <div><label for="internal-adminStatus"
+                            class="block text-sm font-medium text-gray-700">Status</label><select
+                            id="internal-adminStatus"
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Non-Aktif">Non-Aktif</option>
+                        </select></div>
+                </div>
+                <div class="flex items-center justify-end pt-6 space-x-4 border-t mt-6"><button
+                        id="cancel-internal-user-btn" type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Batal</button><button
+                        type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="add-external-user-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 no-print">
+        <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <p class="text-2xl font-bold">Tambah User Eksternal</p><button id="close-external-user-modal-btn"
+                    class="cursor-pointer z-50 p-2 -mr-2"><svg class="w-6 h-6" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg></button>
+            </div>
+            <form id="add-external-user-form" class="mt-4">
+                <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                    <div><label for="external-adminName" class="block text-sm font-medium text-gray-700">Nama
+                            Lengkap</label><input type="text" id="external-adminName" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="external-adminUsername" class="block text-sm font-medium text-gray-700">Username /
+                            Email</label><input type="email" id="external-adminUsername" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="external-adminPassword"
+                            class="block text-sm font-medium text-gray-700">Password</label><input type="password"
+                            id="external-adminPassword" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="external-adminRole"
+                            class="block text-sm font-medium text-gray-700">Role</label><select id="external-adminRole"
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                            <option value="Admin Koperasi">Admin Koperasi</option>
+                            <option value="Admin BUMDes">Admin BUMDes</option>
+                            <option value="Admin Perumda">Admin Perumda</option>
+                        </select></div>
+                    <div class="entity-container"><label for="external-adminEntity"
+                            class="block text-sm font-medium text-gray-700">Nama Entitas Terkait</label><input
+                            type="text" id="external-adminEntity" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                            placeholder="Cth: Koperasi Tani Makmur"></div>
+                    <div class="location-container pt-4 border-t"><label
+                            class="block text-sm font-medium text-gray-700 mb-2">Lokasi Entitas</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label for="external-adminProvinsi"
+                                    class="block text-xs text-gray-600">Provinsi</label><input type="text"
+                                    id="external-adminProvinsi" value="SULAWESI TENGAH" readonly
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-gray-100"></div>
+                            <div><label for="external-adminKabupaten"
+                                    class="block text-xs text-gray-600">Kabupaten</label><input type="text"
+                                    id="external-adminKabupaten" value="PARIGI MOUTONG" readonly
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-gray-100"></div>
+                            <div><label for="external-adminKecamatan"
+                                    class="block text-xs text-gray-600">Kecamatan</label><select
+                                    id="external-adminKecamatan" required
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                                    <option value="">Pilih Kecamatan</option>
+                                </select></div>
+                            <div><label for="external-adminDesa" class="block text-xs text-gray-600">Desa</label><select
+                                    id="external-adminDesa" required
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white" disabled>
+                                    <option value="">Pilih Desa</option>
+                                </select></div>
+                        </div>
+                    </div>
+                    <div><label for="external-adminStatus"
+                            class="block text-sm font-medium text-gray-700">Status</label><select
+                            id="external-adminStatus"
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Non-Aktif">Non-Aktif</option>
+                        </select></div>
+                </div>
+                <div class="flex items-center justify-end pt-6 space-x-4 border-t mt-6"><button
+                        id="cancel-external-user-btn" type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Batal</button><button
+                        type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="edit-user-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 no-print">
+        <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <div>
+                    <p class="text-2xl font-bold">Edit User</p>
+                </div><button id="close-edit-modal-btn" class="cursor-pointer z-50"><svg class="w-6 h-6" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg></button>
+            </div>
+            <form id="edit-user-form" class="mt-4">
+                <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                    <input type="hidden" id="edit-user-id">
+                    <input type="hidden" id="edit-user-type">
+                    <div><label for="edit-adminName" class="block text-sm font-medium text-gray-700">Nama
+                            Lengkap</label><input type="text" id="edit-adminName" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div><label for="edit-adminUsername" class="block text-sm font-medium text-gray-700">Username /
+                            Email</label><input type="email" id="edit-adminUsername" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md" readonly></div>
+                    <div><label for="edit-adminRole" class="block text-sm font-medium text-gray-700">Role</label><select
+                            id="edit-adminRole"
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white"></select></div>
+                    <div id="edit-entity-input-container" class="entity-container hidden"><label for="edit-adminEntity"
+                            class="block text-sm font-medium text-gray-700">Nama Entitas Terkait</label><input
+                            type="text" id="edit-adminEntity" required
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md"></div>
+                    <div id="edit-access-rights-container" class="access-container pt-4 border-t hidden"><label
+                            class="block text-sm font-medium text-gray-700 mb-2">Hak Akses Menu</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center"><input id="edit-access-analitik-cerdas" type="checkbox"
+                                    data-access="analitik-cerdas"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"><label
+                                    for="edit-access-analitik-cerdas" class="ml-2 text-sm text-gray-700">Analitik
+                                    Cerdas</label></div>
+                            <div class="flex items-center"><input id="edit-access-pengaturan" type="checkbox"
+                                    data-access="pengaturan"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"><label
+                                    for="edit-access-pengaturan" class="ml-2 text-sm text-gray-700">Pengaturan</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="edit-location-container" class="location-container pt-4 border-t hidden"><label
+                            class="block text-sm font-medium text-gray-700 mb-2">Lokasi Entitas</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label for="edit-adminProvinsi"
+                                    class="block text-xs text-gray-600">Provinsi</label><input type="text"
+                                    id="edit-adminProvinsi" value="SULAWESI TENGAH" readonly
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-gray-100"></div>
+                            <div><label for="edit-adminKabupaten"
+                                    class="block text-xs text-gray-600">Kabupaten</label><input type="text"
+                                    id="edit-adminKabupaten" value="PARIGI MOUTONG"
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-gray-100"></div>
+                            <div><label for="edit-adminKecamatan"
+                                    class="block text-xs text-gray-600">Kecamatan</label><select
+                                    id="edit-adminKecamatan" required
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                                    <option value="">Pilih Kecamatan</option>
+                                </select></div>
+                            <div><label for="edit-adminDesa" class="block text-xs text-gray-600">Desa</label><select
+                                    id="edit-adminDesa" required
+                                    class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white" disabled>
+                                    <option value="">Pilih Desa</option>
+                                </select></div>
+                        </div>
+                    </div>
+                    <div><label for="edit-adminStatus"
+                            class="block text-sm font-medium text-gray-700">Status</label><select id="edit-adminStatus"
+                            class="mt-1 p-2 w-full border border-gray-300 rounded-md bg-white">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Non-Aktif">Non-Aktif</option>
+                        </select></div>
+                </div>
+                <div class="flex items-center justify-end pt-6 space-x-4 border-t mt-6"><button id="cancel-edit-btn"
+                        type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Batal</button><button
+                        type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan
+                        Perubahan</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="delete-confirm-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center hidden z-50 no-print">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-auto">
+            <h3 class="text-lg font-bold text-gray-900">Konfirmasi Penghapusan</h3>
+            <p id="delete-confirm-text" class="mt-2 text-sm text-gray-600">Apakah Anda yakin ingin menghapus user ini?
+            </p>
+            <div class="mt-6 flex justify-end space-x-4"><button id="cancel-delete-btn"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Batal</button><button
+                    id="confirm-delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Ya,
+                    Hapus</button></div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div id="filter-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-40 no-print">
+        <div class="relative mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-xl bg-slate-50 dark:bg-gray-800">
+            <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-200 dark:border-gray-700">
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-white">Filter Data Monitoring</h3>
+                <button id="close-filter-modal-btn" class="cursor-pointer z-50 p-2 -mr-2">
+                    <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Filter Group: Lokasi -->
+                <div class="space-y-4 p-4 bg-white dark:bg-gray-700/50 rounded-lg shadow-sm border border-slate-100">
+                    <h4 class="font-semibold text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                        Lokasi</h4>
+                    <div>
+                        <label for="filter-provinsi" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Provinsi</label>
+                        <select id="filter-provinsi" class="filter-location w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm">
+                            <option value="">Semua Provinsi</option>
+                            <option selected>SULAWESI TENGAH</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter-kabupaten" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Kabupaten</label>
+                        <select id="filter-kabupaten" class="filter-location w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm">
+                            <option value="">Semua Kabupaten</option>
+                            <option selected>PARIGI MOUTONG</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter-kecamatan" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Kecamatan</label>
+                        <select id="filter-kecamatan" class="filter-location w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm" disabled>
+                            <option value="">Semua Kecamatan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter-desa" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Desa</label>
+                        <select id="filter-desa" class="filter-location w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm" disabled>
+                            <option value="">Semua Desa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filter Group: Entitas -->
+                <div class="space-y-4 p-4 bg-white dark:bg-gray-700/50 rounded-lg shadow-sm border border-slate-100">
+                    <h4 class="font-semibold text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                        Entitas</h4>
+                    <div>
+                        <label for="filter-koperasi" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Koperasi</label>
+                        <select id="filter-koperasi" class="w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm" disabled>
+                            <option value="">Semua Koperasi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filter Group: Produk -->
+                <div class="space-y-4 p-4 bg-white dark:bg-gray-700/50 rounded-lg lg:col-span-2 shadow-sm border border-slate-100">
+                    <h4 class="font-semibold text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-2">
+                        Produk</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="filter-kategori" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Kategori Produk</label>
+                            <select id="filter-kategori" class="w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm">
+                                <option value="">Semua Kategori</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-produk" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Item Produk</label>
+                            <select id="filter-produk" class="w-full p-2 border-gray-300 rounded-md bg-white shadow-sm dark:bg-gray-700 dark:border-gray-600 text-sm" disabled>
+                                <option value="">Semua Produk</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Action Buttons -->
+            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button id="reset-filters-btn-modal" class="text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.691V5.006h-4.992v.001M21.015 4.356L17.834 1.175a8.25 8.25 0 00-11.664 0L2.985 4.356m4.992 2.691h4.992" />
+                    </svg>
+                    Reset Filter
+                </button>
+                <div id="active-filters-summary-modal" class="flex items-center gap-2 flex-wrap">
+                    <!-- Active filter tags will be injected here -->
+                </div>
+                <button id="apply-filters-btn-modal" class="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition shadow-md hover:shadow-lg focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                    </svg>
+                    Terapkan Filter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin_besar_pemda.js"></script>
+</body>
+
+</html>

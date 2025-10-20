@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buat Penawaran - Gerbang Pangan</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="logogpid.png" type="image/png">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 flex items-center sticky top-0 z-10">
+        <a href="apk_dashboard_petani.html" class="p-2 rounded-full hover:bg-gray-100">
+            <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+        </a>
+        <h1 class="text-lg font-bold text-gray-800 mx-auto">Buat Penawaran Panen</h1>
+        <div class="w-10"></div> <!-- Spacer -->
+    </header>
+
+    <main class="p-4 space-y-6">
+        <!-- Form Buat Penawaran -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-xl font-bold mb-4">Formulir Penawaran</h3>
+            <form id="offer-form" class="space-y-4">
+                <div>
+                    <label for="product-name" class="block text-sm font-medium text-gray-700">Nama Produk</label>
+                    <input type="text" id="product-name" placeholder="Contoh: Bawang Merah Super" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700">Jumlah</label>
+                        <input type="number" id="quantity" placeholder="500" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="unit" class="block text-sm font-medium text-gray-700">Unit</label>
+                        <input type="text" id="unit" placeholder="Kg" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">Harga Penawaran (per Unit)</label>
+                    <input type="number" id="price" placeholder="25000" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div>
+                    <label for="harvest-date" class="block text-sm font-medium text-gray-700">Perkiraan Tanggal Panen</label>
+                    <input type="date" id="harvest-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-blue-700 transition">Kirim Penawaran</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Riwayat Penawaran -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-xl font-bold mb-4">Riwayat Penawaran Saya</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="p-3 text-sm font-semibold">Produk</th>
+                            <th class="p-3 text-sm font-semibold text-right">Jumlah</th>
+                            <th class="p-3 text-sm font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="offers-history-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <div id="alert-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const DB_FARMER_OFFERS_KEY = 'gerbangPanganFarmerOffers';
+            const CUSTOMERS_KEY = 'gerbangPanganCustomers';
+            const loggedInUserEmail = localStorage.getItem('loggedInUserEmail');
+
+            if (!loggedInUserEmail) {
+                window.location.replace('apk_login.html');
+                return;
+            }
+
+            const form = document.getElementById('offer-form');
+            const tableBody = document.getElementById('offers-history-table');
+
+            const getCurrentUser = () => {
+                const customers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY)) || [];
+                return customers.find(c => c.email === loggedInUserEmail);
+            };
+
+            const renderOfferHistory = () => {
+                const currentUser = getCurrentUser();
+                if (!currentUser) return;
+
+                const allOffers = JSON.parse(localStorage.getItem(DB_FARMER_OFFERS_KEY)) || [];
+                const userOffers = allOffers.filter(offer => offer.farmerName === currentUser.name).sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+
+                tableBody.innerHTML = '';
+                if (userOffers.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="3" class="text-center p-4 text-gray-500">Anda belum pernah membuat penawaran.</td></tr>`;
+                    return;
+                }
+
+                userOffers.forEach(offer => {
+                    const statusClasses = {
+                        'Tersedia': 'bg-blue-100 text-blue-800',
+                        'Terjual': 'bg-green-100 text-green-800',
+                        'Ditolak': 'bg-red-100 text-red-800'
+                    };
+                    const statusClass = statusClasses[offer.status] || 'bg-gray-100 text-gray-800';
+
+                    const row = `
+                        <tr class="border-b last:border-b-0">
+                            <td class="p-3">
+                                <p class="font-medium">${offer.productName}</p>
+                                <p class="text-xs text-gray-500">${new Date(offer.harvestDate).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}</p>
+                            </td>
+                            <td class="p-3 text-right">${offer.quantity} ${offer.unit}</td>
+                            <td class="p-3"><span class="text-xs font-medium px-2 py-1 rounded-full ${statusClass}">${offer.status}</span></td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            };
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const currentUser = getCurrentUser();
+                if (!currentUser) return;
+
+                const newOffer = {
+                    id: 'fo-' + Date.now(),
+                    farmerName: currentUser.name,
+                    productName: document.getElementById('product-name').value,
+                    quantity: parseFloat(document.getElementById('quantity').value),
+                    unit: document.getElementById('unit').value,
+                    price: parseFloat(document.getElementById('price').value),
+                    harvestDate: document.getElementById('harvest-date').value,
+                    postDate: new Date().toISOString(),
+                    status: 'Tersedia' // Default status
+                };
+
+                let allOffers = JSON.parse(localStorage.getItem(DB_FARMER_OFFERS_KEY)) || [];
+                allOffers.push(newOffer);
+                localStorage.setItem(DB_FARMER_OFFERS_KEY, JSON.stringify(allOffers));
+
+                showAlert('Penawaran berhasil dikirim!', 'success');
+                form.reset();
+                renderOfferHistory();
+            });
+
+            function showAlert(message, type = 'success') {
+                const alertContainer = document.getElementById('alert-container');
+                const alertId = 'alert-' + Date.now();
+                const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+
+                const alertEl = document.createElement('div');
+                alertEl.id = alertId;
+                alertEl.className = `flex items-center p-4 text-white ${bgColor} rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+                alertEl.innerHTML = `<div class="ml-3 text-sm font-medium">${message}</div>`;
+                alertContainer.appendChild(alertEl);
+
+                requestAnimationFrame(() => alertEl.classList.remove('translate-x-full'));
+                setTimeout(() => alertEl.remove(), 3000);
+            }
+
+            // Initial render
+            renderOfferHistory();
+        });
+    </script>
+
+</body>
+</html>

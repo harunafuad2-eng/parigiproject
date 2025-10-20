@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tentang Koperasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-green': '#10B981',
+                        'custom-green-dark': '#047857',
+                        'custom-blue': '#3B82F6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="sticky top-0 bg-white shadow-sm z-20">
+            <div class="flex justify-between items-center p-4">
+                <button onclick="window.location.href = 'apk_dashboard_petani.html';" class="text-custom-green text-3xl font-bold rounded-full p-1 hover:bg-gray-100 transition active:scale-95">&larr;</button>
+                <h1 class="text-2xl font-normal text-gray-800 text-center">Tentang Koperasi</h1>
+                <div class="w-8"></div>
+            </div>
+        </header>
+
+        <main class="p-4 md:p-6">
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-2">Misi Kami</h2>
+                <p class="text-gray-600">
+                    Koperasi ini bertujuan untuk menjadi jembatan antara produsen lokal (petani, nelayan, peternak) dan para pelaku usaha di Kabupaten Parigi Moutong. Misi kami adalah meningkatkan kesejahteraan anggota, memastikan ketersediaan pasokan berkualitas, dan mendorong pertumbuhan ekonomi daerah melalui teknologi.
+                </p>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Peran & Tugas Utama Koperasi</h2>
+
+            <!-- Bagian Peran Koperasi -->
+            <div class="space-y-6">
+                
+                <!-- Kartu Pengumpulan Hasil Bumi -->
+                <div class="bg-white p-6 rounded-xl shadow-md flex items-start space-x-4">
+                    <div class="bg-blue-100 p-3 rounded-full flex-shrink-0">
+                        <i data-lucide="tractor" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Pengumpulan Hasil Bumi</h3>
+                        <p class="text-sm text-gray-500 mt-1">Kami bekerja sama dengan BUMDes untuk menampung hasil panen dari para petani dan nelayan lokal. Proses ini memastikan produk yang masuk memiliki kualitas terbaik sejak dari sumbernya.</p>
+                    </div>
+                </div>
+
+                <!-- Kartu Manajemen Stok & Kualitas -->
+                <div class="bg-white p-6 rounded-xl shadow-md flex items-start space-x-4">
+                    <div class="bg-green-100 p-3 rounded-full flex-shrink-0">
+                        <i data-lucide="clipboard-check" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Manajemen Stok & Kualitas</h3>
+                        <p class="text-sm text-gray-500 mt-1">Setiap produk yang masuk akan melalui proses sortir dan kontrol kualitas di gudang kami. Sistem manajemen stok yang terintegrasi memastikan ketersediaan dan kesegaran produk selalu terjaga.</p>
+                    </div>
+                </div>
+
+                <!-- Kartu Distribusi & Penjualan -->
+                <div class="bg-white p-6 rounded-xl shadow-md flex items-start space-x-4">
+                    <div class="bg-yellow-100 p-3 rounded-full flex-shrink-0">
+                        <i data-lucide="shopping-cart" class="w-8 h-8 text-yellow-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Distribusi & Penjualan Grosir</h3>
+                        <p class="text-sm text-gray-500 mt-1">Melalui aplikasi ini, kami mendistribusikan produk dalam jumlah besar (grosir) kepada para pelaku usaha seperti Anda. Ini mempermudah Anda mendapatkan pasokan berkualitas dengan harga yang kompetitif.</p>
+                    </div>
+                </div>
+                
+                <!-- Kartu Pemberdayaan Anggota -->
+                <div class="bg-white p-6 rounded-xl shadow-md flex items-start space-x-4">
+                    <div class="bg-red-100 p-3 rounded-full flex-shrink-0">
+                        <i data-lucide="users" class="w-8 h-8 text-red-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Pemberdayaan Anggota</h3>
+                        <p class="text-sm text-gray-500 mt-1">Dengan memotong rantai pasok yang panjang, kami memastikan para petani dan nelayan (anggota koperasi) mendapatkan harga jual yang adil, sehingga meningkatkan taraf hidup dan kesejahteraan mereka.</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
